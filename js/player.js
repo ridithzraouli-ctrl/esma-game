@@ -1,27 +1,40 @@
+const NORMAL_WIDTH = 32;
+const NORMAL_HEIGHT = 48;
+
+const BIG_WIDTH = 48;
+const BIG_HEIGHT = 64;
+
 export const player = {
     x: 100,
-    y: 422,
+    y: 400,
 
-    width: 32,
-    height: 48,
+    width: NORMAL_WIDTH,
+    height: NORMAL_HEIGHT,
 
     velocityX: 0,
     velocityY: 0,
 
-    speed: 5,
-    jumpPower: 12,
+    speed: 4.5,
+    jumpPower: 11,
 
-    grounded: true
+    grounded: false,
+
+    power: null,
+
+    isBig: false,
+
+    hasWings: false,
+    hasDoubleJump: false,
+    hasFirePower: false,
+
+    jumpsUsed: 0
 };
 
 const gravity = 0.6;
+const maxFallSpeed = 14;
 
 
-// ========================================
-// RESET PLAYER
-// ========================================
-
-export function resetPlayer(x = 100, y = 422) {
+export function resetPlayer(x = 100, y = 400) {
 
     player.x = x;
     player.y = y;
@@ -29,84 +42,111 @@ export function resetPlayer(x = 100, y = 422) {
     player.velocityX = 0;
     player.velocityY = 0;
 
-    player.grounded = true;
+    player.grounded = false;
+
+    player.jumpsUsed = 0;
+
 }
 
 
-// ========================================
-// UPDATE PLAYER
-// ========================================
-
 export function updatePlayer(keys, platforms) {
 
-    // LEFT
+    player.velocityX = 0;
 
-    if (keys["arrowleft"] || keys["a"]) {
+
+    if (
+        keys["a"] ||
+        keys["arrowleft"]
+    ) {
 
         player.velocityX = -player.speed;
 
     }
 
 
-    // RIGHT
-
-    else if (keys["arrowright"] || keys["d"]) {
+    if (
+        keys["d"] ||
+        keys["arrowright"]
+    ) {
 
         player.velocityX = player.speed;
 
     }
 
 
-    // STOP
+    player.x += player.velocityX;
 
-    else {
-
-        player.velocityX *= 0.8;
-
-    }
-
-
-    // GRAVITY
 
     player.velocityY += gravity;
 
 
-    // MOVE
+    if (
+        player.velocityY >
+        maxFallSpeed
+    ) {
 
-    player.x += player.velocityX;
+        player.velocityY =
+            maxFallSpeed;
+
+    }
+
+
     player.y += player.velocityY;
 
 
     player.grounded = false;
 
 
-    // PLATFORM COLLISION
+    for (
+        const platform of platforms
+    ) {
 
-    for (const platform of platforms) {
+        const horizontal =
+            player.x <
+                platform.x + platform.width &&
+            player.x + player.width >
+                platform.x;
 
-        const touchingPlatform =
-            player.x < platform.x + platform.width &&
-            player.x + player.width > platform.x &&
-            player.y + player.height >= platform.y &&
-            player.y + player.height <= platform.y + platform.height &&
+
+        const falling =
             player.velocityY >= 0;
 
 
-        if (touchingPlatform) {
+        const landing =
+            player.y + player.height >=
+                platform.y &&
+            player.y + player.height <=
+                platform.y +
+                platform.height;
+
+
+        if (
+            horizontal &&
+            falling &&
+            landing
+        ) {
 
             player.y =
-                platform.y - player.height;
+                platform.y -
+                player.height;
 
             player.velocityY = 0;
 
             player.grounded = true;
+
+            player.jumpsUsed = 0;
 
         }
 
     }
 
 
-    // LEFT BOUNDARY
+    if (player.grounded) {
+
+        player.jumpsUsed = 0;
+
+    }
+
 
     if (player.x < 0) {
 
@@ -117,19 +157,37 @@ export function updatePlayer(keys, platforms) {
 }
 
 
-// ========================================
-// JUMP
-// ========================================
-
 export function jump() {
 
-    if (!player.grounded) {
-        return;
+    if (player.grounded) {
+
+        player.velocityY =
+            -player.jumpPower;
+
+        player.grounded = false;
+
+        player.jumpsUsed = 1;
+
+        return true;
+
     }
 
 
-    player.velocityY = -player.jumpPower;
+    if (
+        player.hasDoubleJump &&
+        player.jumpsUsed < 2
+    ) {
 
-    player.grounded = false;
+        player.velocityY =
+            -player.jumpPower;
+
+        player.jumpsUsed++;
+
+        return true;
+
+    }
+
+
+    return false;
 
 }
