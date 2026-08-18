@@ -17,6 +17,13 @@ import {
 } from "./levels.js";
 
 import {
+    createBeetle,
+    updateEnemy,
+    checkEnemyCollision,
+    canStompEnemy
+} from "./enemies.js";
+
+import {
     GAME_STATES,
     gameState,
     setGameState,
@@ -80,6 +87,55 @@ document.addEventListener("keyup", (event) => {
 
 
 // ========================================
+// ENEMIES
+// ========================================
+
+let enemies = [];
+
+
+function createEnemiesForLevel() {
+
+    enemies = [
+
+        createBeetle(600, 446),
+
+        createBeetle(1200, 376),
+
+        createBeetle(1900, 396),
+
+        createBeetle(2450, 306),
+
+        createBeetle(2850, 376),
+
+        createBeetle(3500, 446)
+
+    ];
+
+}
+
+
+// ========================================
+// RESET CURRENT LEVEL
+// ========================================
+
+function resetCurrentLevel() {
+
+    const level = getCurrentLevel();
+
+    resetPlayer(
+        level.spawn.x,
+        level.spawn.y
+    );
+
+    camera.x = 0;
+    camera.y = 0;
+
+    createEnemiesForLevel();
+
+}
+
+
+// ========================================
 // MOUSE
 // ========================================
 
@@ -108,6 +164,8 @@ canvas.addEventListener("click", (event) => {
                 60
             )
         ) {
+
+            resetCurrentLevel();
 
             setGameState(GAME_STATES.PLAYING);
 
@@ -219,19 +277,6 @@ canvas.addEventListener("click", (event) => {
 
 
 // ========================================
-// CURRENT LEVEL
-// ========================================
-
-function getPlatforms() {
-
-    const level = getCurrentLevel();
-
-    return level.platforms;
-
-}
-
-
-// ========================================
 // UPDATE
 // ========================================
 
@@ -247,11 +292,55 @@ function update() {
     const platforms = level.platforms;
 
 
+    // Player
+
     updatePlayer(
         keys,
         platforms
     );
 
+
+    // Enemies
+
+    for (const enemy of enemies) {
+
+        updateEnemy(
+            enemy,
+            platforms
+        );
+
+    }
+
+
+    // Player / enemy collisions
+
+    for (const enemy of enemies) {
+
+        if (!checkEnemyCollision(player, enemy)) {
+            continue;
+        }
+
+
+        if (canStompEnemy(player, enemy)) {
+
+            enemy.alive = false;
+
+            player.velocityY = -7;
+
+        }
+
+        else {
+
+            resetCurrentLevel();
+
+            return;
+
+        }
+
+    }
+
+
+    // Camera
 
     updateCamera(
         player,
@@ -260,9 +349,7 @@ function update() {
     );
 
 
-    // -----------------------------
-    // LEVEL EXIT
-    // -----------------------------
+    // Level exit
 
     const exit = level.exit;
 
@@ -281,19 +368,18 @@ function update() {
 
         if (hasNextLevel) {
 
-            const newLevel = getCurrentLevel();
-
-
-            resetPlayer(
-                newLevel.spawn.x,
-                newLevel.spawn.y
-            );
-
-
-            camera.x = 0;
-            camera.y = 0;
+            resetCurrentLevel();
 
         }
+
+    }
+
+
+    // Fall off the level
+
+    if (player.y > canvas.height + 300) {
+
+        resetCurrentLevel();
 
     }
 
@@ -498,118 +584,10 @@ function drawGame() {
 
     const level = getCurrentLevel();
 
-    const platforms = level.platforms;
-
 
     ctx.save();
 
 
     ctx.translate(
         -camera.x,
-        -camera.y
-    );
-
-
-    // -----------------------------
-    // PLATFORMS
-    // -----------------------------
-
-    ctx.fillStyle = "#8B5A2B";
-
-
-    for (const platform of platforms) {
-
-        ctx.fillRect(
-            platform.x,
-            platform.y,
-            platform.width,
-            platform.height
-        );
-
-    }
-
-
-    // -----------------------------
-    // EXIT
-    // -----------------------------
-
-    ctx.fillStyle = "#00FF00";
-
-
-    ctx.fillRect(
-        level.exit.x,
-        level.exit.y,
-        level.exit.width,
-        level.exit.height
-    );
-
-
-    // -----------------------------
-    // PLAYER
-    // -----------------------------
-
-    ctx.fillStyle = "#FF69B4";
-
-
-    ctx.fillRect(
-        player.x,
-        player.y,
-        player.width,
-        player.height
-    );
-
-
-    ctx.restore();
-
-}
-
-
-// ========================================
-// DRAW
-// ========================================
-
-function draw() {
-
-    if (gameState === GAME_STATES.MENU) {
-
-        drawMenu();
-
-    }
-
-    else if (gameState === GAME_STATES.HOW_TO_PLAY) {
-
-        drawHowToPlay();
-
-    }
-
-    else if (gameState === GAME_STATES.SETTINGS) {
-
-        drawSettings();
-
-    }
-
-    else if (gameState === GAME_STATES.PLAYING) {
-
-        drawGame();
-
-    }
-
-}
-
-
-// ========================================
-// GAME LOOP
-// ========================================
-
-function gameLoop() {
-
-    update();
-
-    draw();
-
-    requestAnimationFrame(gameLoop);
-
-}
-
-
-gameLoop();
+       
