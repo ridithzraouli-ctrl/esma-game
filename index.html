@@ -42,10 +42,28 @@ canvas.height = 540;
 
 
 // ========================================
+// WORLD SETTINGS
+// ========================================
+
+const WORLD_WIDTH = 4000;
+
+
+// ========================================
+// CAMERA
+// ========================================
+
+const camera = {
+    x: 0,
+    y: 0
+};
+
+
+// ========================================
 // PLAYER
 // ========================================
 
 const player = {
+
     x: 100,
     y: 300,
 
@@ -59,6 +77,7 @@ const player = {
     jumpPower: 12,
 
     grounded: false
+
 };
 
 
@@ -70,7 +89,7 @@ const gravity = 0.6;
 
 
 // ========================================
-// KEYBOARD INPUT
+// CONTROLS
 // ========================================
 
 const keys = {};
@@ -81,8 +100,6 @@ document.addEventListener("keydown", (event) => {
 
     keys[key] = true;
 
-    // Prevent the spacebar and arrow keys
-    // from scrolling the browser.
     if (
         key === " " ||
         key === "arrowup" ||
@@ -102,11 +119,15 @@ document.addEventListener("keydown", (event) => {
         ) &&
         player.grounded
     ) {
+
         player.velocityY = -player.jumpPower;
+
         player.grounded = false;
+
     }
 
 });
+
 
 document.addEventListener("keyup", (event) => {
 
@@ -121,41 +142,88 @@ document.addEventListener("keyup", (event) => {
 
 const platforms = [
 
-    // Main ground
+    // Starting ground
     {
         x: 0,
         y: 470,
-        width: 960,
+        width: 900,
         height: 70
     },
 
-    // First floating platform
+    // Platform 1
     {
-        x: 300,
-        y: 380,
-        width: 180,
+        x: 1050,
+        y: 400,
+        width: 250,
         height: 25
     },
 
-    // Second floating platform
+    // Platform 2
     {
-        x: 600,
-        y: 300,
-        width: 180,
+        x: 1450,
+        y: 350,
+        width: 200,
         height: 25
+    },
+
+    // Platform 3
+    {
+        x: 1800,
+        y: 420,
+        width: 300,
+        height: 25
+    },
+
+    // Platform 4
+    {
+        x: 2300,
+        y: 330,
+        width: 250,
+        height: 25
+    },
+
+    // Platform 5
+    {
+        x: 2700,
+        y: 400,
+        width: 300,
+        height: 25
+    },
+
+    // Final ground
+    {
+        x: 3200,
+        y: 470,
+        width: 800,
+        height: 70
     }
 
 ];
 
 
 // ========================================
+// RESET PLAYER
+// ========================================
+
+function resetPlayer() {
+
+    player.x = 100;
+    player.y = 300;
+
+    player.velocityX = 0;
+    player.velocityY = 0;
+
+}
+
+
+// ========================================
 // UPDATE PLAYER
 // ========================================
 
-function update() {
+function updatePlayer() {
 
     // ------------------------------------
-    // Horizontal movement
+    // Movement
     // ------------------------------------
 
     if (keys["arrowleft"] || keys["a"]) {
@@ -172,7 +240,6 @@ function update() {
 
     else {
 
-        // Gradually slow down
         player.velocityX *= 0.8;
 
     }
@@ -186,15 +253,13 @@ function update() {
 
 
     // ------------------------------------
-    // Move player
+    // Move
     // ------------------------------------
 
     player.x += player.velocityX;
     player.y += player.velocityY;
 
 
-    // Assume player is in the air
-    // until a platform collision proves otherwise.
     player.grounded = false;
 
 
@@ -214,14 +279,11 @@ function update() {
 
         if (touchingPlatform) {
 
-            // Place player directly on top
-            // of the platform.
-            player.y = platform.y - player.height;
+            player.y =
+                platform.y - player.height;
 
-            // Stop downward movement.
             player.velocityY = 0;
 
-            // Player is standing on something.
             player.grounded = true;
 
         }
@@ -230,7 +292,7 @@ function update() {
 
 
     // ------------------------------------
-    // Left screen boundary
+    // World boundaries
     // ------------------------------------
 
     if (player.x < 0) {
@@ -240,13 +302,21 @@ function update() {
     }
 
 
+    if (player.x + player.width > WORLD_WIDTH) {
+
+        player.x =
+            WORLD_WIDTH - player.width;
+
+    }
+
+
     // ------------------------------------
-    // Right screen boundary
+    // Falling
     // ------------------------------------
 
-    if (player.x + player.width > canvas.width) {
+    if (player.y > canvas.height + 200) {
 
-        player.x = canvas.width - player.width;
+        resetPlayer();
 
     }
 
@@ -254,14 +324,56 @@ function update() {
 
 
 // ========================================
-// DRAW GAME
+// UPDATE CAMERA
 // ========================================
 
-function draw() {
+function updateCamera() {
 
-    // ------------------------------------
+    // Keep player around the middle of screen
+
+    const targetX =
+        player.x -
+        canvas.width * 0.4;
+
+
+    // Smooth camera movement
+
+    camera.x +=
+        (targetX - camera.x) * 0.08;
+
+
+    // Don't scroll before beginning
+
+    if (camera.x < 0) {
+
+        camera.x = 0;
+
+    }
+
+
+    // Don't scroll beyond level
+
+    const maxCameraX =
+        WORLD_WIDTH -
+        canvas.width;
+
+
+    if (camera.x > maxCameraX) {
+
+        camera.x = maxCameraX;
+
+    }
+
+}
+
+
+// ========================================
+// DRAW BACKGROUND
+// ========================================
+
+function drawBackground() {
+
     // Sky
-    // ------------------------------------
 
     ctx.fillStyle = "#87CEEB";
 
@@ -273,22 +385,73 @@ function draw() {
     );
 
 
-    // ------------------------------------
-    // Ground
-    // ------------------------------------
+    // Simple clouds
 
-    ctx.fillStyle = "#5B9E48";
+    ctx.fillStyle = "white";
 
-    ctx.fillRect(
-        0,
-        470,
-        canvas.width,
-        70
+    for (let i = 0; i < 12; i++) {
+
+        const cloudX =
+            i * 400 -
+            camera.x * 0.25;
+
+        const cloudY =
+            70 +
+            (i % 3) * 60;
+
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cloudX,
+            cloudY,
+            25,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            cloudX + 30,
+            cloudY - 10,
+            35,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            cloudX + 65,
+            cloudY,
+            25,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+
+// ========================================
+// DRAW LEVEL
+// ========================================
+
+function drawLevel() {
+
+    ctx.save();
+
+
+    // Move world according to camera
+
+    ctx.translate(
+        -camera.x,
+        -camera.y
     );
 
 
     // ------------------------------------
-    // Floating platforms
+    // Platforms
     // ------------------------------------
 
     ctx.fillStyle = "#8B5A2B";
@@ -318,22 +481,41 @@ function draw() {
         player.height
     );
 
+
+    ctx.restore();
+
 }
 
 
 // ========================================
-// MAIN GAME LOOP
+// DRAW
+// ========================================
+
+function draw() {
+
+    drawBackground();
+
+    drawLevel();
+
+}
+
+
+// ========================================
+// GAME LOOP
 // ========================================
 
 function gameLoop() {
 
-    update();
+    updatePlayer();
+
+    updateCamera();
 
     draw();
 
     requestAnimationFrame(gameLoop);
 
 }
+
 
 gameLoop();
 
