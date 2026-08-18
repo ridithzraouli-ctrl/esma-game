@@ -1,13 +1,4 @@
-// ========================================
-// LEVEL DATA
-// ========================================
-
 export const WORLD_WIDTH = 4000;
-
-
-// ========================================
-// CURRENT LEVEL
-// ========================================
 
 export let currentWorld = 1;
 export let currentLevel = 1;
@@ -18,6 +9,11 @@ export let currentLevel = 1;
 // ========================================
 
 const testLevel = {
+
+    spawn: {
+        x: 100,
+        y: 422
+    },
 
     platforms: [
 
@@ -70,13 +66,20 @@ const testLevel = {
             height: 70
         }
 
-    ]
+    ],
+
+    exit: {
+        x: 3850,
+        y: 390,
+        width: 50,
+        height: 80
+    }
 
 };
 
 
 // ========================================
-// LEVEL STORAGE
+// 3 WORLDS × 4 LEVELS
 // ========================================
 
 const levels = {
@@ -117,7 +120,7 @@ export function getCurrentLevel() {
 
 
 // ========================================
-// CHANGE LEVEL
+// SET LEVEL
 // ========================================
 
 export function setLevel(world, level) {
@@ -153,8 +156,6 @@ export function nextLevel() {
 
     }
 
-
-    // Game completed
 
     return false;
 
