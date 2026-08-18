@@ -1,6 +1,10 @@
 import { player, updatePlayer, jump } from "./player.js";
 import { camera, updateCamera } from "./camera.js";
-import { platforms, WORLD_WIDTH } from "./levels.js";
+
+import {
+    getCurrentLevel,
+    WORLD_WIDTH
+} from "./levels.js";
 
 import {
     GAME_STATES,
@@ -13,6 +17,7 @@ import {
     isInsideButton,
     drawButton
 } from "./menu.js";
+
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -43,15 +48,16 @@ document.addEventListener("keydown", (event) => {
         event.preventDefault();
     }
 
-    if (gameState === GAME_STATES.PLAYING) {
-
-        if (
+    if (
+        gameState === GAME_STATES.PLAYING &&
+        (
             key === " " ||
             key === "arrowup" ||
             key === "w"
-        ) {
-            jump();
-        }
+        )
+    ) {
+
+        jump();
 
     }
 
@@ -66,7 +72,7 @@ document.addEventListener("keyup", (event) => {
 
 
 // ========================================
-// MOUSE / TOUCH
+// MOUSE
 // ========================================
 
 canvas.addEventListener("click", (event) => {
@@ -81,10 +87,6 @@ canvas.addEventListener("click", (event) => {
         (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
-
-    // -----------------------------
-    // MAIN MENU
-    // -----------------------------
 
     if (gameState === GAME_STATES.MENU) {
 
@@ -136,10 +138,6 @@ canvas.addEventListener("click", (event) => {
     }
 
 
-    // -----------------------------
-    // HOW TO PLAY
-    // -----------------------------
-
     else if (gameState === GAME_STATES.HOW_TO_PLAY) {
 
         if (
@@ -147,7 +145,7 @@ canvas.addEventListener("click", (event) => {
                 mouseX,
                 mouseY,
                 330,
-                450,
+                430,
                 300,
                 60
             )
@@ -159,10 +157,6 @@ canvas.addEventListener("click", (event) => {
 
     }
 
-
-    // -----------------------------
-    // SETTINGS
-    // -----------------------------
 
     else if (gameState === GAME_STATES.SETTINGS) {
 
@@ -217,6 +211,19 @@ canvas.addEventListener("click", (event) => {
 
 
 // ========================================
+// CURRENT LEVEL
+// ========================================
+
+function getPlatforms() {
+
+    const level = getCurrentLevel();
+
+    return level.platforms;
+
+}
+
+
+// ========================================
 // UPDATE
 // ========================================
 
@@ -226,10 +233,15 @@ function update() {
         return;
     }
 
+
+    const platforms = getPlatforms();
+
+
     updatePlayer(
         keys,
         platforms
     );
+
 
     updateCamera(
         player,
@@ -259,7 +271,7 @@ function drawMenuBackground() {
 
 
 // ========================================
-// TITLE SCREEN
+// MENU
 // ========================================
 
 function drawMenu() {
@@ -426,6 +438,9 @@ function drawGame() {
         canvas.width,
         canvas.height
     );
+
+
+    const platforms = getPlatforms();
 
 
     ctx.save();
