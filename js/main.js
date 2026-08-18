@@ -18,6 +18,7 @@ import {
 
 import {
     createBeetle,
+    createFly,
     updateEnemy,
     checkEnemyCollision,
     canStompEnemy
@@ -97,17 +98,21 @@ function createEnemiesForLevel() {
 
     enemies = [
 
+        // Beetles
+
         createBeetle(600, 446),
-
         createBeetle(1200, 376),
-
         createBeetle(1900, 396),
-
         createBeetle(2450, 306),
-
         createBeetle(2850, 376),
+        createBeetle(3500, 446),
 
-        createBeetle(3500, 446)
+
+        // Flies
+
+        createFly(750, 300),
+        createFly(1600, 250),
+        createFly(2500, 220)
 
     ];
 
@@ -312,7 +317,7 @@ function update() {
     }
 
 
-    // Player / enemy collisions
+    // Enemy collisions
 
     for (const enemy of enemies) {
 
@@ -375,7 +380,7 @@ function update() {
     }
 
 
-    // Fall off the level
+    // Falling
 
     if (player.y > canvas.height + 300) {
 
@@ -411,7 +416,6 @@ function drawMenuBackground() {
 function drawMenu() {
 
     drawMenuBackground();
-
 
     ctx.fillStyle = "#000000";
 
@@ -467,7 +471,6 @@ function drawHowToPlay() {
 
     drawMenuBackground();
 
-
     ctx.fillStyle = "#000000";
 
     ctx.font = "bold 48px Arial";
@@ -518,7 +521,6 @@ function drawHowToPlay() {
 function drawSettings() {
 
     drawMenuBackground();
-
 
     ctx.fillStyle = "#000000";
 
@@ -590,4 +592,136 @@ function drawGame() {
 
     ctx.translate(
         -camera.x,
-       
+        -camera.y
+    );
+
+
+    // Platforms
+
+    ctx.fillStyle = "#8B5A2B";
+
+
+    for (const platform of level.platforms) {
+
+        ctx.fillRect(
+            platform.x,
+            platform.y,
+            platform.width,
+            platform.height
+        );
+
+    }
+
+
+    // Exit
+
+    ctx.fillStyle = "#00FF00";
+
+
+    ctx.fillRect(
+        level.exit.x,
+        level.exit.y,
+        level.exit.width,
+        level.exit.height
+    );
+
+
+    // Enemies
+
+    for (const enemy of enemies) {
+
+        if (!enemy.alive) {
+            continue;
+        }
+
+
+        if (enemy.type === "beetle") {
+
+            ctx.fillStyle = "#000000";
+
+        }
+
+        else if (enemy.type === "fly") {
+
+            ctx.fillStyle = "#555555";
+
+        }
+
+
+        ctx.fillRect(
+            enemy.x,
+            enemy.y,
+            enemy.width,
+            enemy.height
+        );
+
+    }
+
+
+    // Player
+
+    ctx.fillStyle = "#FF69B4";
+
+
+    ctx.fillRect(
+        player.x,
+        player.y,
+        player.width,
+        player.height
+    );
+
+
+    ctx.restore();
+
+}
+
+
+// ========================================
+// DRAW
+// ========================================
+
+function draw() {
+
+    if (gameState === GAME_STATES.MENU) {
+
+        drawMenu();
+
+    }
+
+    else if (gameState === GAME_STATES.HOW_TO_PLAY) {
+
+        drawHowToPlay();
+
+    }
+
+    else if (gameState === GAME_STATES.SETTINGS) {
+
+        drawSettings();
+
+    }
+
+    else if (gameState === GAME_STATES.PLAYING) {
+
+        drawGame();
+
+    }
+
+}
+
+
+// ========================================
+// GAME LOOP
+// ========================================
+
+function gameLoop() {
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(gameLoop);
+
+}
+
+
+gameLoop();
