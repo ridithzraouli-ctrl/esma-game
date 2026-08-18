@@ -1,3 +1,7 @@
+// ========================================
+// MAIN GAME
+// ========================================
+
 import {
     player,
     updatePlayer,
@@ -18,10 +22,15 @@ import {
 
 import {
     createBeetle,
+    createCockroach,
     createFly,
+    createSpider,
+    createGhost,
+    createCactus,
     updateEnemy,
     checkEnemyCollision,
-    canStompEnemy
+    canStompEnemy,
+    defeatEnemy
 } from "./enemies.js";
 
 import {
@@ -37,7 +46,12 @@ import {
 } from "./menu.js";
 
 
+// ========================================
+// CANVAS
+// ========================================
+
 const canvas = document.getElementById("game");
+
 const ctx = canvas.getContext("2d");
 
 canvas.width = 960;
@@ -50,11 +64,13 @@ canvas.height = 540;
 
 const keys = {};
 
+
 document.addEventListener("keydown", (event) => {
 
     const key = event.key.toLowerCase();
 
     keys[key] = true;
+
 
     if (
         key === " " ||
@@ -63,8 +79,11 @@ document.addEventListener("keydown", (event) => {
         key === "arrowleft" ||
         key === "arrowright"
     ) {
+
         event.preventDefault();
+
     }
+
 
     if (
         gameState === GAME_STATES.PLAYING &&
@@ -74,7 +93,9 @@ document.addEventListener("keydown", (event) => {
             key === "w"
         )
     ) {
+
         jump();
+
     }
 
 });
@@ -94,27 +115,101 @@ document.addEventListener("keyup", (event) => {
 let enemies = [];
 
 
-function createEnemiesForLevel() {
+// Create the correct enemy object
+// from the level data
 
-    enemies = [
+function createEnemyFromData(data) {
 
-        // Beetles
+    if (data.type === "beetle") {
 
-        createBeetle(600, 446),
-        createBeetle(1200, 376),
-        createBeetle(1900, 396),
-        createBeetle(2450, 306),
-        createBeetle(2850, 376),
-        createBeetle(3500, 446),
+        return createBeetle(
+            data.x,
+            data.y
+        );
+
+    }
 
 
-        // Flies
+    if (data.type === "cockroach") {
 
-        createFly(750, 300),
-        createFly(1600, 250),
-        createFly(2500, 220)
+        return createCockroach(
+            data.x,
+            data.y
+        );
 
-    ];
+    }
+
+
+    if (data.type === "fly") {
+
+        return createFly(
+            data.x,
+            data.y
+        );
+
+    }
+
+
+    if (data.type === "spider") {
+
+        return createSpider(
+            data.x,
+            data.y
+        );
+
+    }
+
+
+    if (data.type === "ghost") {
+
+        return createGhost(
+            data.x,
+            data.y
+        );
+
+    }
+
+
+    if (data.type === "cactus") {
+
+        return createCactus(
+            data.x,
+            data.y
+        );
+
+    }
+
+
+    return null;
+
+}
+
+
+// ========================================
+// LOAD LEVEL ENEMIES
+// ========================================
+
+function loadEnemies() {
+
+    const level = getCurrentLevel();
+
+
+    enemies = [];
+
+
+    for (const enemyData of level.enemies) {
+
+        const enemy =
+            createEnemyFromData(enemyData);
+
+
+        if (enemy) {
+
+            enemies.push(enemy);
+
+        }
+
+    }
 
 }
 
@@ -127,15 +222,18 @@ function resetCurrentLevel() {
 
     const level = getCurrentLevel();
 
+
     resetPlayer(
         level.spawn.x,
         level.spawn.y
     );
 
+
     camera.x = 0;
     camera.y = 0;
 
-    createEnemiesForLevel();
+
+    loadEnemies();
 
 }
 
@@ -146,18 +244,28 @@ function resetCurrentLevel() {
 
 canvas.addEventListener("click", (event) => {
 
-    const rect = canvas.getBoundingClientRect();
+    const rect =
+        canvas.getBoundingClientRect();
+
 
     const mouseX =
         (event.clientX - rect.left) *
         (canvas.width / rect.width);
+
 
     const mouseY =
         (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
 
+    // ====================================
+    // MAIN MENU
+    // ====================================
+
     if (gameState === GAME_STATES.MENU) {
+
+
+        // PLAY
 
         if (
             isInsideButton(
@@ -172,9 +280,14 @@ canvas.addEventListener("click", (event) => {
 
             resetCurrentLevel();
 
-            setGameState(GAME_STATES.PLAYING);
+            setGameState(
+                GAME_STATES.PLAYING
+            );
 
         }
+
+
+        // HOW TO PLAY
 
         else if (
             isInsideButton(
@@ -187,9 +300,14 @@ canvas.addEventListener("click", (event) => {
             )
         ) {
 
-            setGameState(GAME_STATES.HOW_TO_PLAY);
+            setGameState(
+                GAME_STATES.HOW_TO_PLAY
+            );
 
         }
+
+
+        // SETTINGS
 
         else if (
             isInsideButton(
@@ -202,14 +320,23 @@ canvas.addEventListener("click", (event) => {
             )
         ) {
 
-            setGameState(GAME_STATES.SETTINGS);
+            setGameState(
+                GAME_STATES.SETTINGS
+            );
 
         }
 
     }
 
 
-    else if (gameState === GAME_STATES.HOW_TO_PLAY) {
+    // ====================================
+    // HOW TO PLAY
+    // ====================================
+
+    else if (
+        gameState ===
+        GAME_STATES.HOW_TO_PLAY
+    ) {
 
         if (
             isInsideButton(
@@ -222,14 +349,26 @@ canvas.addEventListener("click", (event) => {
             )
         ) {
 
-            setGameState(GAME_STATES.MENU);
+            setGameState(
+                GAME_STATES.MENU
+            );
 
         }
 
     }
 
 
-    else if (gameState === GAME_STATES.SETTINGS) {
+    // ====================================
+    // SETTINGS
+    // ====================================
+
+    else if (
+        gameState ===
+        GAME_STATES.SETTINGS
+    ) {
+
+
+        // MUSIC
 
         if (
             isInsideButton(
@@ -246,6 +385,9 @@ canvas.addEventListener("click", (event) => {
 
         }
 
+
+        // SOUND
+
         else if (
             isInsideButton(
                 mouseX,
@@ -261,6 +403,9 @@ canvas.addEventListener("click", (event) => {
 
         }
 
+
+        // BACK
+
         else if (
             isInsideButton(
                 mouseX,
@@ -272,7 +417,9 @@ canvas.addEventListener("click", (event) => {
             )
         ) {
 
-            setGameState(GAME_STATES.MENU);
+            setGameState(
+                GAME_STATES.MENU
+            );
 
         }
 
@@ -287,17 +434,27 @@ canvas.addEventListener("click", (event) => {
 
 function update() {
 
-    if (gameState !== GAME_STATES.PLAYING) {
+    if (
+        gameState !==
+        GAME_STATES.PLAYING
+    ) {
+
         return;
+
     }
 
 
-    const level = getCurrentLevel();
+    const level =
+        getCurrentLevel();
 
-    const platforms = level.platforms;
+
+    const platforms =
+        level.platforms;
 
 
-    // Player
+    // ====================================
+    // PLAYER
+    // ====================================
 
     updatePlayer(
         keys,
@@ -305,7 +462,9 @@ function update() {
     );
 
 
-    // Enemies
+    // ====================================
+    // ENEMIES
+    // ====================================
 
     for (const enemy of enemies) {
 
@@ -317,22 +476,41 @@ function update() {
     }
 
 
-    // Enemy collisions
+    // ====================================
+    // ENEMY COLLISIONS
+    // ====================================
 
     for (const enemy of enemies) {
 
-        if (!checkEnemyCollision(player, enemy)) {
+        if (
+            !checkEnemyCollision(
+                player,
+                enemy
+            )
+        ) {
+
             continue;
+
         }
 
 
-        if (canStompEnemy(player, enemy)) {
+        // Stompable enemy
 
-            enemy.alive = false;
+        if (
+            canStompEnemy(
+                player,
+                enemy
+            )
+        ) {
+
+            defeatEnemy(enemy);
 
             player.velocityY = -7;
 
         }
+
+
+        // Dangerous enemy
 
         else {
 
@@ -345,7 +523,9 @@ function update() {
     }
 
 
-    // Camera
+    // ====================================
+    // CAMERA
+    // ====================================
 
     updateCamera(
         player,
@@ -354,21 +534,32 @@ function update() {
     );
 
 
-    // Level exit
+    // ====================================
+    // LEVEL EXIT
+    // ====================================
 
-    const exit = level.exit;
+    const exit =
+        level.exit;
 
 
     const reachedExit =
-        player.x < exit.x + exit.width &&
-        player.x + player.width > exit.x &&
-        player.y < exit.y + exit.height &&
-        player.y + player.height > exit.y;
+        player.x <
+            exit.x + exit.width &&
+
+        player.x + player.width >
+            exit.x &&
+
+        player.y <
+            exit.y + exit.height &&
+
+        player.y + player.height >
+            exit.y;
 
 
     if (reachedExit) {
 
-        const hasNextLevel = nextLevel();
+        const hasNextLevel =
+            nextLevel();
 
 
         if (hasNextLevel) {
@@ -380,9 +571,14 @@ function update() {
     }
 
 
-    // Falling
+    // ====================================
+    // FALLING
+    // ====================================
 
-    if (player.y > canvas.height + 300) {
+    if (
+        player.y >
+        canvas.height + 300
+    ) {
 
         resetCurrentLevel();
 
@@ -398,6 +594,7 @@ function update() {
 function drawMenuBackground() {
 
     ctx.fillStyle = "#87CEEB";
+
 
     ctx.fillRect(
         0,
@@ -417,9 +614,11 @@ function drawMenu() {
 
     drawMenuBackground();
 
+
     ctx.fillStyle = "#000000";
 
-    ctx.font = "bold 56px Arial";
+    ctx.font =
+        "bold 56px Arial";
 
     ctx.textAlign = "center";
 
@@ -471,9 +670,11 @@ function drawHowToPlay() {
 
     drawMenuBackground();
 
+
     ctx.fillStyle = "#000000";
 
-    ctx.font = "bold 48px Arial";
+    ctx.font =
+        "bold 48px Arial";
 
     ctx.textAlign = "center";
 
@@ -485,7 +686,8 @@ function drawHowToPlay() {
     );
 
 
-    ctx.font = "24px Arial";
+    ctx.font =
+        "24px Arial";
 
 
     ctx.fillText(
@@ -522,9 +724,11 @@ function drawSettings() {
 
     drawMenuBackground();
 
+
     ctx.fillStyle = "#000000";
 
-    ctx.font = "bold 48px Arial";
+    ctx.font =
+        "bold 48px Arial";
 
     ctx.textAlign = "center";
 
@@ -538,7 +742,10 @@ function drawSettings() {
 
     drawButton(
         ctx,
-        "MUSIC: " + (musicEnabled ? "ON" : "OFF"),
+        "MUSIC: " +
+            (musicEnabled
+                ? "ON"
+                : "OFF"),
         330,
         230,
         300,
@@ -548,7 +755,10 @@ function drawSettings() {
 
     drawButton(
         ctx,
-        "SOUND: " + (soundEnabled ? "ON" : "OFF"),
+        "SOUND: " +
+            (soundEnabled
+                ? "ON"
+                : "OFF"),
         330,
         310,
         300,
@@ -576,6 +786,7 @@ function drawGame() {
 
     ctx.fillStyle = "#87CEEB";
 
+
     ctx.fillRect(
         0,
         0,
@@ -584,7 +795,8 @@ function drawGame() {
     );
 
 
-    const level = getCurrentLevel();
+    const level =
+        getCurrentLevel();
 
 
     ctx.save();
@@ -596,12 +808,17 @@ function drawGame() {
     );
 
 
-    // Platforms
+    // ====================================
+    // PLATFORMS
+    // ====================================
 
     ctx.fillStyle = "#8B5A2B";
 
 
-    for (const platform of level.platforms) {
+    for (
+        const platform of
+        level.platforms
+    ) {
 
         ctx.fillRect(
             platform.x,
@@ -613,7 +830,9 @@ function drawGame() {
     }
 
 
-    // Exit
+    // ====================================
+    // EXIT
+    // ====================================
 
     ctx.fillStyle = "#00FF00";
 
@@ -626,24 +845,87 @@ function drawGame() {
     );
 
 
-    // Enemies
+    // ====================================
+    // ENEMIES
+    // ====================================
 
     for (const enemy of enemies) {
 
         if (!enemy.alive) {
+
             continue;
+
         }
 
 
-        if (enemy.type === "beetle") {
+        // Beetle
+
+        if (
+            enemy.type ===
+            "beetle"
+        ) {
 
             ctx.fillStyle = "#000000";
 
         }
 
-        else if (enemy.type === "fly") {
+
+        // Cockroach
+
+        else if (
+            enemy.type ===
+            "cockroach"
+        ) {
+
+            ctx.fillStyle = "#4A2A16";
+
+        }
+
+
+        // Fly
+
+        else if (
+            enemy.type ===
+            "fly"
+        ) {
 
             ctx.fillStyle = "#555555";
+
+        }
+
+
+        // Spider
+
+        else if (
+            enemy.type ===
+            "spider"
+        ) {
+
+            ctx.fillStyle = "#663399";
+
+        }
+
+
+        // Ghost
+
+        else if (
+            enemy.type ===
+            "ghost"
+        ) {
+
+            ctx.fillStyle = "#EEEEEE";
+
+        }
+
+
+        // Cactus
+
+        else if (
+            enemy.type ===
+            "cactus"
+        ) {
+
+            ctx.fillStyle = "#228B22";
 
         }
 
@@ -658,7 +940,9 @@ function drawGame() {
     }
 
 
-    // Player
+    // ====================================
+    // PLAYER
+    // ====================================
 
     ctx.fillStyle = "#FF69B4";
 
@@ -682,25 +966,40 @@ function drawGame() {
 
 function draw() {
 
-    if (gameState === GAME_STATES.MENU) {
+    if (
+        gameState ===
+        GAME_STATES.MENU
+    ) {
 
         drawMenu();
 
     }
 
-    else if (gameState === GAME_STATES.HOW_TO_PLAY) {
+
+    else if (
+        gameState ===
+        GAME_STATES.HOW_TO_PLAY
+    ) {
 
         drawHowToPlay();
 
     }
 
-    else if (gameState === GAME_STATES.SETTINGS) {
+
+    else if (
+        gameState ===
+        GAME_STATES.SETTINGS
+    ) {
 
         drawSettings();
 
     }
 
-    else if (gameState === GAME_STATES.PLAYING) {
+
+    else if (
+        gameState ===
+        GAME_STATES.PLAYING
+    ) {
 
         drawGame();
 
@@ -719,7 +1018,9 @@ function gameLoop() {
 
     draw();
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(
+        gameLoop
+    );
 
 }
 
