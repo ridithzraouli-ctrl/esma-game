@@ -2,13 +2,18 @@
 // ENEMY SYSTEM
 // ========================================
 
+
+// ========================================
+// BEETLE
+// ========================================
+
 export function createBeetle(x, y) {
 
     return {
         type: "beetle",
 
-        x: x,
-        y: y,
+        x,
+        y,
 
         width: 32,
         height: 24,
@@ -25,6 +30,32 @@ export function createBeetle(x, y) {
 
 
 // ========================================
+// FLY
+// ========================================
+
+export function createFly(x, y) {
+
+    return {
+        type: "fly",
+
+        x,
+        y,
+
+        width: 28,
+        height: 24,
+
+        velocityX: -1.5,
+        velocityY: 0,
+
+        startY: y,
+
+        alive: true
+    };
+
+}
+
+
+// ========================================
 // ENEMY GRAVITY
 // ========================================
 
@@ -32,35 +63,19 @@ const gravity = 0.6;
 
 
 // ========================================
-// UPDATE ENEMY
+// UPDATE BEETLE
 // ========================================
 
-export function updateEnemy(enemy, platforms) {
-
-    if (!enemy.alive) {
-        return;
-    }
-
-
-    // Gravity
+function updateBeetle(enemy, platforms) {
 
     enemy.velocityY += gravity;
 
-
-    // Horizontal movement
-
     enemy.x += enemy.velocityX;
-
-
-    // Vertical movement
 
     enemy.y += enemy.velocityY;
 
-
     enemy.grounded = false;
 
-
-    // Platform collision
 
     for (const platform of platforms) {
 
@@ -85,8 +100,6 @@ export function updateEnemy(enemy, platforms) {
 
     }
 
-
-    // Turn around at platform edges
 
     if (enemy.grounded) {
 
@@ -113,6 +126,54 @@ export function updateEnemy(enemy, platforms) {
             enemy.velocityX *= -1;
 
         }
+
+    }
+
+}
+
+
+// ========================================
+// UPDATE FLY
+// ========================================
+
+function updateFly(enemy) {
+
+    enemy.x += enemy.velocityX;
+
+
+    // Gentle up and down flying movement
+
+    enemy.y =
+        enemy.startY +
+        Math.sin(Date.now() / 300) * 30;
+
+}
+
+
+// ========================================
+// UPDATE ANY ENEMY
+// ========================================
+
+export function updateEnemy(enemy, platforms) {
+
+    if (!enemy.alive) {
+        return;
+    }
+
+
+    if (enemy.type === "beetle") {
+
+        updateBeetle(
+            enemy,
+            platforms
+        );
+
+    }
+
+
+    else if (enemy.type === "fly") {
+
+        updateFly(enemy);
 
     }
 
