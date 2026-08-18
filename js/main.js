@@ -1,9 +1,19 @@
-import { player, updatePlayer, jump } from "./player.js";
-import { camera, updateCamera } from "./camera.js";
+import {
+    player,
+    updatePlayer,
+    jump,
+    resetPlayer
+} from "./player.js";
+
+import {
+    camera,
+    updateCamera
+} from "./camera.js";
 
 import {
     getCurrentLevel,
-    WORLD_WIDTH
+    WORLD_WIDTH,
+    nextLevel
 } from "./levels.js";
 
 import {
@@ -56,9 +66,7 @@ document.addEventListener("keydown", (event) => {
             key === "w"
         )
     ) {
-
         jump();
-
     }
 
 });
@@ -234,7 +242,9 @@ function update() {
     }
 
 
-    const platforms = getPlatforms();
+    const level = getCurrentLevel();
+
+    const platforms = level.platforms;
 
 
     updatePlayer(
@@ -248,6 +258,44 @@ function update() {
         canvas,
         WORLD_WIDTH
     );
+
+
+    // -----------------------------
+    // LEVEL EXIT
+    // -----------------------------
+
+    const exit = level.exit;
+
+
+    const reachedExit =
+        player.x < exit.x + exit.width &&
+        player.x + player.width > exit.x &&
+        player.y < exit.y + exit.height &&
+        player.y + player.height > exit.y;
+
+
+    if (reachedExit) {
+
+        const hasNextLevel = nextLevel();
+
+
+        if (hasNextLevel) {
+
+            const newLevel = getCurrentLevel();
+
+
+            resetPlayer(
+                newLevel.spawn.x,
+                newLevel.spawn.y
+            );
+
+
+            camera.x = 0;
+            camera.y = 0;
+
+        }
+
+    }
 
 }
 
@@ -271,18 +319,20 @@ function drawMenuBackground() {
 
 
 // ========================================
-// MENU
+// TITLE SCREEN
 // ========================================
 
 function drawMenu() {
 
     drawMenuBackground();
 
+
     ctx.fillStyle = "#000000";
 
     ctx.font = "bold 56px Arial";
 
     ctx.textAlign = "center";
+
 
     ctx.fillText(
         "BIRTHDAY ADVENTURE",
@@ -331,11 +381,13 @@ function drawHowToPlay() {
 
     drawMenuBackground();
 
+
     ctx.fillStyle = "#000000";
 
     ctx.font = "bold 48px Arial";
 
     ctx.textAlign = "center";
+
 
     ctx.fillText(
         "HOW TO PLAY",
@@ -346,11 +398,13 @@ function drawHowToPlay() {
 
     ctx.font = "24px Arial";
 
+
     ctx.fillText(
         "A / D or LEFT / RIGHT = MOVE",
         canvas.width / 2,
         180
     );
+
 
     ctx.fillText(
         "SPACE / W / UP = JUMP",
@@ -379,11 +433,13 @@ function drawSettings() {
 
     drawMenuBackground();
 
+
     ctx.fillStyle = "#000000";
 
     ctx.font = "bold 48px Arial";
 
     ctx.textAlign = "center";
+
 
     ctx.fillText(
         "SETTINGS",
@@ -440,10 +496,13 @@ function drawGame() {
     );
 
 
-    const platforms = getPlatforms();
+    const level = getCurrentLevel();
+
+    const platforms = level.platforms;
 
 
     ctx.save();
+
 
     ctx.translate(
         -camera.x,
@@ -451,9 +510,12 @@ function drawGame() {
     );
 
 
-    // Platforms
+    // -----------------------------
+    // PLATFORMS
+    // -----------------------------
 
     ctx.fillStyle = "#8B5A2B";
+
 
     for (const platform of platforms) {
 
@@ -467,9 +529,27 @@ function drawGame() {
     }
 
 
-    // Player
+    // -----------------------------
+    // EXIT
+    // -----------------------------
+
+    ctx.fillStyle = "#00FF00";
+
+
+    ctx.fillRect(
+        level.exit.x,
+        level.exit.y,
+        level.exit.width,
+        level.exit.height
+    );
+
+
+    // -----------------------------
+    // PLAYER
+    // -----------------------------
 
     ctx.fillStyle = "#FF69B4";
+
 
     ctx.fillRect(
         player.x,
@@ -530,5 +610,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 
 }
+
 
 gameLoop();
