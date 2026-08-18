@@ -1,7 +1,3 @@
-// ========================================
-// MAIN GAME
-// ========================================
-
 import {
     player,
     updatePlayer,
@@ -34,6 +30,13 @@ import {
 } from "./enemies.js";
 
 import {
+    createPowerUp,
+    checkPowerUpCollision,
+    collectPowerUp,
+    ITEM_TYPES
+} from "./powerups.js";
+
+import {
     GAME_STATES,
     gameState,
     setGameState,
@@ -46,10 +49,6 @@ import {
 } from "./menu.js";
 
 
-// ========================================
-// CANVAS
-// ========================================
-
 const canvas = document.getElementById("game");
 
 const ctx = canvas.getContext("2d");
@@ -58,11 +57,10 @@ canvas.width = 960;
 canvas.height = 540;
 
 
-// ========================================
-// INPUT
-// ========================================
-
 const keys = {};
+
+let enemies = [];
+let powerUps = [];
 
 
 document.addEventListener("keydown", (event) => {
@@ -71,7 +69,6 @@ document.addEventListener("keydown", (event) => {
 
     keys[key] = true;
 
-
     if (
         key === " " ||
         key === "arrowup" ||
@@ -79,11 +76,8 @@ document.addEventListener("keydown", (event) => {
         key === "arrowleft" ||
         key === "arrowright"
     ) {
-
         event.preventDefault();
-
     }
-
 
     if (
         gameState === GAME_STATES.PLAYING &&
@@ -93,9 +87,7 @@ document.addEventListener("keydown", (event) => {
             key === "w"
         )
     ) {
-
         jump();
-
     }
 
 });
@@ -108,93 +100,54 @@ document.addEventListener("keyup", (event) => {
 });
 
 
-// ========================================
-// ENEMIES
-// ========================================
-
-let enemies = [];
-
-
-// Create the correct enemy object
-// from the level data
-
 function createEnemyFromData(data) {
 
     if (data.type === "beetle") {
-
-        return createBeetle(
-            data.x,
-            data.y
-        );
-
+        return createBeetle(data.x, data.y);
     }
-
 
     if (data.type === "cockroach") {
-
-        return createCockroach(
-            data.x,
-            data.y
-        );
-
+        return createCockroach(data.x, data.y);
     }
-
 
     if (data.type === "fly") {
-
-        return createFly(
-            data.x,
-            data.y
-        );
-
+        return createFly(data.x, data.y);
     }
-
 
     if (data.type === "spider") {
-
-        return createSpider(
-            data.x,
-            data.y
-        );
-
+        return createSpider(data.x, data.y);
     }
-
 
     if (data.type === "ghost") {
-
-        return createGhost(
-            data.x,
-            data.y
-        );
-
+        return createGhost(data.x, data.y);
     }
-
 
     if (data.type === "cactus") {
-
-        return createCactus(
-            data.x,
-            data.y
-        );
-
+        return createCactus(data.x, data.y);
     }
 
-
     return null;
+}
+
+
+function createPowerUpFromData(data) {
+
+    return createPowerUp(
+        data.type,
+        data.x,
+        data.y
+    );
 
 }
 
 
-// ========================================
-// LOAD LEVEL ENEMIES
-// ========================================
-
-function loadEnemies() {
+function loadLevelObjects() {
 
     const level = getCurrentLevel();
 
-
     enemies = [];
+
+    powerUps = [];
 
 
     for (const enemyData of level.enemies) {
@@ -202,10 +155,28 @@ function loadEnemies() {
         const enemy =
             createEnemyFromData(enemyData);
 
-
         if (enemy) {
-
             enemies.push(enemy);
+        }
+
+    }
+
+
+    if (level.powerUps) {
+
+        for (
+            const powerUpData of
+            level.powerUps
+        ) {
+
+            const powerUp =
+                createPowerUpFromData(
+                    powerUpData
+                );
+
+            if (powerUp) {
+                powerUps.push(powerUp);
+            }
 
         }
 
@@ -214,58 +185,38 @@ function loadEnemies() {
 }
 
 
-// ========================================
-// RESET CURRENT LEVEL
-// ========================================
-
 function resetCurrentLevel() {
 
     const level = getCurrentLevel();
-
 
     resetPlayer(
         level.spawn.x,
         level.spawn.y
     );
 
-
     camera.x = 0;
     camera.y = 0;
 
-
-    loadEnemies();
+    loadLevelObjects();
 
 }
 
-
-// ========================================
-// MOUSE
-// ========================================
 
 canvas.addEventListener("click", (event) => {
 
     const rect =
         canvas.getBoundingClientRect();
 
-
     const mouseX =
         (event.clientX - rect.left) *
         (canvas.width / rect.width);
-
 
     const mouseY =
         (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
 
-    // ====================================
-    // MAIN MENU
-    // ====================================
-
     if (gameState === GAME_STATES.MENU) {
-
-
-        // PLAY
 
         if (
             isInsideButton(
@@ -286,9 +237,6 @@ canvas.addEventListener("click", (event) => {
 
         }
 
-
-        // HOW TO PLAY
-
         else if (
             isInsideButton(
                 mouseX,
@@ -305,9 +253,6 @@ canvas.addEventListener("click", (event) => {
             );
 
         }
-
-
-        // SETTINGS
 
         else if (
             isInsideButton(
@@ -328,10 +273,6 @@ canvas.addEventListener("click", (event) => {
 
     }
 
-
-    // ====================================
-    // HOW TO PLAY
-    // ====================================
 
     else if (
         gameState ===
@@ -358,17 +299,10 @@ canvas.addEventListener("click", (event) => {
     }
 
 
-    // ====================================
-    // SETTINGS
-    // ====================================
-
     else if (
         gameState ===
         GAME_STATES.SETTINGS
     ) {
-
-
-        // MUSIC
 
         if (
             isInsideButton(
@@ -385,9 +319,6 @@ canvas.addEventListener("click", (event) => {
 
         }
 
-
-        // SOUND
-
         else if (
             isInsideButton(
                 mouseX,
@@ -402,9 +333,6 @@ canvas.addEventListener("click", (event) => {
             toggleSound();
 
         }
-
-
-        // BACK
 
         else if (
             isInsideButton(
@@ -428,10 +356,6 @@ canvas.addEventListener("click", (event) => {
 });
 
 
-// ========================================
-// UPDATE
-// ========================================
-
 function update() {
 
     if (
@@ -447,24 +371,15 @@ function update() {
     const level =
         getCurrentLevel();
 
-
     const platforms =
         level.platforms;
 
-
-    // ====================================
-    // PLAYER
-    // ====================================
 
     updatePlayer(
         keys,
         platforms
     );
 
-
-    // ====================================
-    // ENEMIES
-    // ====================================
 
     for (const enemy of enemies) {
 
@@ -476,9 +391,24 @@ function update() {
     }
 
 
-    // ====================================
-    // ENEMY COLLISIONS
-    // ====================================
+    for (const powerUp of powerUps) {
+
+        if (
+            checkPowerUpCollision(
+                player,
+                powerUp
+            )
+        ) {
+
+            collectPowerUp(
+                player,
+                powerUp
+            );
+
+        }
+
+    }
+
 
     for (const enemy of enemies) {
 
@@ -494,8 +424,6 @@ function update() {
         }
 
 
-        // Stompable enemy
-
         if (
             canStompEnemy(
                 player,
@@ -509,9 +437,6 @@ function update() {
 
         }
 
-
-        // Dangerous enemy
-
         else {
 
             resetCurrentLevel();
@@ -523,20 +448,12 @@ function update() {
     }
 
 
-    // ====================================
-    // CAMERA
-    // ====================================
-
     updateCamera(
         player,
         canvas,
         WORLD_WIDTH
     );
 
-
-    // ====================================
-    // LEVEL EXIT
-    // ====================================
 
     const exit =
         level.exit;
@@ -561,7 +478,6 @@ function update() {
         const hasNextLevel =
             nextLevel();
 
-
         if (hasNextLevel) {
 
             resetCurrentLevel();
@@ -570,10 +486,6 @@ function update() {
 
     }
 
-
-    // ====================================
-    // FALLING
-    // ====================================
 
     if (
         player.y >
@@ -587,14 +499,9 @@ function update() {
 }
 
 
-// ========================================
-// MENU BACKGROUND
-// ========================================
-
 function drawMenuBackground() {
 
     ctx.fillStyle = "#87CEEB";
-
 
     ctx.fillRect(
         0,
@@ -606,14 +513,9 @@ function drawMenuBackground() {
 }
 
 
-// ========================================
-// TITLE SCREEN
-// ========================================
-
 function drawMenu() {
 
     drawMenuBackground();
-
 
     ctx.fillStyle = "#000000";
 
@@ -621,7 +523,6 @@ function drawMenu() {
         "bold 56px Arial";
 
     ctx.textAlign = "center";
-
 
     ctx.fillText(
         "BIRTHDAY ADVENTURE",
@@ -639,7 +540,6 @@ function drawMenu() {
         60
     );
 
-
     drawButton(
         ctx,
         "HOW TO PLAY",
@@ -648,7 +548,6 @@ function drawMenu() {
         300,
         60
     );
-
 
     drawButton(
         ctx,
@@ -662,14 +561,9 @@ function drawMenu() {
 }
 
 
-// ========================================
-// HOW TO PLAY
-// ========================================
-
 function drawHowToPlay() {
 
     drawMenuBackground();
-
 
     ctx.fillStyle = "#000000";
 
@@ -678,17 +572,14 @@ function drawHowToPlay() {
 
     ctx.textAlign = "center";
 
-
     ctx.fillText(
         "HOW TO PLAY",
         canvas.width / 2,
         90
     );
 
-
     ctx.font =
         "24px Arial";
-
 
     ctx.fillText(
         "A / D or LEFT / RIGHT = MOVE",
@@ -696,13 +587,11 @@ function drawHowToPlay() {
         180
     );
 
-
     ctx.fillText(
         "SPACE / W / UP = JUMP",
         canvas.width / 2,
         225
     );
-
 
     drawButton(
         ctx,
@@ -716,14 +605,9 @@ function drawHowToPlay() {
 }
 
 
-// ========================================
-// SETTINGS
-// ========================================
-
 function drawSettings() {
 
     drawMenuBackground();
-
 
     ctx.fillStyle = "#000000";
 
@@ -732,39 +616,31 @@ function drawSettings() {
 
     ctx.textAlign = "center";
 
-
     ctx.fillText(
         "SETTINGS",
         canvas.width / 2,
         100
     );
 
-
     drawButton(
         ctx,
         "MUSIC: " +
-            (musicEnabled
-                ? "ON"
-                : "OFF"),
+        (musicEnabled ? "ON" : "OFF"),
         330,
         230,
         300,
         60
     );
 
-
     drawButton(
         ctx,
         "SOUND: " +
-            (soundEnabled
-                ? "ON"
-                : "OFF"),
+        (soundEnabled ? "ON" : "OFF"),
         330,
         310,
         300,
         60
     );
-
 
     drawButton(
         ctx,
@@ -778,14 +654,9 @@ function drawSettings() {
 }
 
 
-// ========================================
-// GAME
-// ========================================
-
 function drawGame() {
 
     ctx.fillStyle = "#87CEEB";
-
 
     ctx.fillRect(
         0,
@@ -801,24 +672,15 @@ function drawGame() {
 
     ctx.save();
 
-
     ctx.translate(
         -camera.x,
         -camera.y
     );
 
 
-    // ====================================
-    // PLATFORMS
-    // ====================================
+    for (const platform of level.platforms) {
 
-    ctx.fillStyle = "#8B5A2B";
-
-
-    for (
-        const platform of
-        level.platforms
-    ) {
+        ctx.fillStyle = "#8B5A2B";
 
         ctx.fillRect(
             platform.x,
@@ -830,12 +692,7 @@ function drawGame() {
     }
 
 
-    // ====================================
-    // EXIT
-    // ====================================
-
     ctx.fillStyle = "#00FF00";
-
 
     ctx.fillRect(
         level.exit.x,
@@ -845,84 +702,109 @@ function drawGame() {
     );
 
 
-    // ====================================
-    // ENEMIES
-    // ====================================
+    for (const powerUp of powerUps) {
 
-    for (const enemy of enemies) {
-
-        if (!enemy.alive) {
-
+        if (powerUp.collected) {
             continue;
+        }
+
+
+        if (
+            powerUp.type ===
+            ITEM_TYPES.STRAWBERRY
+        ) {
+
+            ctx.fillStyle = "#FF0000";
+
+        }
+
+        else if (
+            powerUp.type ===
+            ITEM_TYPES.WINGS
+        ) {
+
+            ctx.fillStyle = "#FFFFFF";
+
+        }
+
+        else if (
+            powerUp.type ===
+            ITEM_TYPES.BUNNY
+        ) {
+
+            ctx.fillStyle = "#FFB6C1";
+
+        }
+
+        else if (
+            powerUp.type ===
+            ITEM_TYPES.FIRE
+        ) {
+
+            ctx.fillStyle = "#FF6600";
 
         }
 
 
-        // Beetle
+        ctx.fillRect(
+            powerUp.x,
+            powerUp.y,
+            powerUp.width,
+            powerUp.height
+        );
+
+    }
+
+
+    for (const enemy of enemies) {
+
+        if (!enemy.alive) {
+            continue;
+        }
+
 
         if (
-            enemy.type ===
-            "beetle"
+            enemy.type === "beetle"
         ) {
 
             ctx.fillStyle = "#000000";
 
         }
 
-
-        // Cockroach
-
         else if (
-            enemy.type ===
-            "cockroach"
+            enemy.type === "cockroach"
         ) {
 
             ctx.fillStyle = "#4A2A16";
 
         }
 
-
-        // Fly
-
         else if (
-            enemy.type ===
-            "fly"
+            enemy.type === "fly"
         ) {
 
             ctx.fillStyle = "#555555";
 
         }
 
-
-        // Spider
-
         else if (
-            enemy.type ===
-            "spider"
+            enemy.type === "spider"
         ) {
 
             ctx.fillStyle = "#663399";
 
         }
 
-
-        // Ghost
-
         else if (
-            enemy.type ===
-            "ghost"
+            enemy.type === "ghost"
         ) {
 
             ctx.fillStyle = "#EEEEEE";
 
         }
 
-
-        // Cactus
-
         else if (
-            enemy.type ===
-            "cactus"
+            enemy.type === "cactus"
         ) {
 
             ctx.fillStyle = "#228B22";
@@ -940,12 +822,28 @@ function drawGame() {
     }
 
 
-    // ====================================
-    // PLAYER
-    // ====================================
+    if (player.power === "wings") {
+
+        ctx.fillStyle = "#FFFFFF";
+
+        ctx.fillRect(
+            player.x - 10,
+            player.y + 12,
+            10,
+            24
+        );
+
+        ctx.fillRect(
+            player.x + player.width,
+            player.y + 12,
+            10,
+            24
+        );
+
+    }
+
 
     ctx.fillStyle = "#FF69B4";
-
 
     ctx.fillRect(
         player.x,
@@ -960,10 +858,6 @@ function drawGame() {
 }
 
 
-// ========================================
-// DRAW
-// ========================================
-
 function draw() {
 
     if (
@@ -975,7 +869,6 @@ function draw() {
 
     }
 
-
     else if (
         gameState ===
         GAME_STATES.HOW_TO_PLAY
@@ -985,7 +878,6 @@ function draw() {
 
     }
 
-
     else if (
         gameState ===
         GAME_STATES.SETTINGS
@@ -994,7 +886,6 @@ function draw() {
         drawSettings();
 
     }
-
 
     else if (
         gameState ===
@@ -1007,10 +898,6 @@ function draw() {
 
 }
 
-
-// ========================================
-// GAME LOOP
-// ========================================
 
 function gameLoop() {
 
