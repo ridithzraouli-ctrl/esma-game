@@ -16,33 +16,72 @@ export const player = {
 
 const gravity = 0.6;
 
+
+// ========================================
+// RESET PLAYER
+// ========================================
+
+export function resetPlayer(x = 100, y = 422) {
+
+    player.x = x;
+    player.y = y;
+
+    player.velocityX = 0;
+    player.velocityY = 0;
+
+    player.grounded = true;
+}
+
+
+// ========================================
+// UPDATE PLAYER
+// ========================================
+
 export function updatePlayer(keys, platforms) {
 
-    // Move left
+    // LEFT
+
     if (keys["arrowleft"] || keys["a"]) {
+
         player.velocityX = -player.speed;
+
     }
 
-    // Move right
+
+    // RIGHT
+
     else if (keys["arrowright"] || keys["d"]) {
+
         player.velocityX = player.speed;
+
     }
 
-    // Stop
+
+    // STOP
+
     else {
+
         player.velocityX *= 0.8;
+
     }
 
-    // Gravity
+
+    // GRAVITY
+
     player.velocityY += gravity;
 
-    // Move
+
+    // MOVE
+
     player.x += player.velocityX;
     player.y += player.velocityY;
 
+
     player.grounded = false;
 
-    // Platform collision
+
+    // PLATFORM COLLISION
+
     for (const platform of platforms) {
 
         const touchingPlatform =
@@ -52,28 +91,45 @@ export function updatePlayer(keys, platforms) {
             player.y + player.height <= platform.y + platform.height &&
             player.velocityY >= 0;
 
+
         if (touchingPlatform) {
 
-            player.y = platform.y - player.height;
+            player.y =
+                platform.y - player.height;
 
             player.velocityY = 0;
 
             player.grounded = true;
+
         }
+
     }
 
-    // Don't leave the level from the left
+
+    // LEFT BOUNDARY
+
     if (player.x < 0) {
+
         player.x = 0;
+
     }
+
 }
+
+
+// ========================================
+// JUMP
+// ========================================
 
 export function jump() {
 
-    if (player.grounded) {
-
-        player.velocityY = -player.jumpPower;
-
-        player.grounded = false;
+    if (!player.grounded) {
+        return;
     }
+
+
+    player.velocityY = -player.jumpPower;
+
+    player.grounded = false;
+
 }
