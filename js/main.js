@@ -1,69 +1,12 @@
 import { player, updatePlayer, jump } from "./player.js";
 import { camera, updateCamera } from "./camera.js";
+import { platforms, WORLD_WIDTH } from "./levels.js";
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
 canvas.width = 960;
 canvas.height = 540;
-
-
-// ========================================
-// TEMPORARY TEST LEVEL
-// ========================================
-
-const platforms = [
-    {
-        x: 0,
-        y: 470,
-        width: 900,
-        height: 70
-    },
-
-    {
-        x: 1050,
-        y: 400,
-        width: 250,
-        height: 25
-    },
-
-    {
-        x: 1450,
-        y: 350,
-        width: 200,
-        height: 25
-    },
-
-    {
-        x: 1800,
-        y: 420,
-        width: 300,
-        height: 25
-    },
-
-    {
-        x: 2300,
-        y: 330,
-        width: 250,
-        height: 25
-    },
-
-    {
-        x: 2700,
-        y: 400,
-        width: 300,
-        height: 25
-    },
-
-    {
-        x: 3200,
-        y: 470,
-        width: 800,
-        height: 70
-    }
-];
-
-const WORLD_WIDTH = 4000;
 
 
 // ========================================
@@ -99,6 +42,7 @@ document.addEventListener("keydown", (event) => {
 
 });
 
+
 document.addEventListener("keyup", (event) => {
 
     keys[event.key.toLowerCase()] = false;
@@ -112,7 +56,10 @@ document.addEventListener("keyup", (event) => {
 
 function update() {
 
-    updatePlayer(keys, platforms);
+    updatePlayer(
+        keys,
+        platforms
+    );
 
     updateCamera(
         player,
@@ -130,6 +77,7 @@ function update() {
 function draw() {
 
     // Plain background
+
     ctx.fillStyle = "#87CEEB";
 
     ctx.fillRect(
@@ -140,7 +88,8 @@ function draw() {
     );
 
 
-    // Everything below follows the camera
+    // Camera
+
     ctx.save();
 
     ctx.translate(
@@ -149,7 +98,8 @@ function draw() {
     );
 
 
-    // Ground/platforms
+    // Platforms
+
     ctx.fillStyle = "#8B5A2B";
 
     for (const platform of platforms) {
@@ -165,6 +115,7 @@ function draw() {
 
 
     // Player
+
     ctx.fillStyle = "#FF69B4";
 
     ctx.fillRect(
@@ -193,5 +144,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 
 }
+
 
 gameLoop();
