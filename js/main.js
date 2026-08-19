@@ -31,6 +31,7 @@ import {
 
 import {
     createPowerUp,
+    updatePowerUps,
     checkPowerUpCollision,
     collectPowerUp,
     ITEM_TYPES
@@ -63,6 +64,8 @@ const ctx =
 
 canvas.width = 960;
 canvas.height = 540;
+
+ctx.imageSmoothingEnabled = false;
 
 
 const keys = {};
@@ -460,6 +463,12 @@ function update() {
     }
 
 
+    updatePowerUps(
+        powerUps,
+        level.platforms
+    );
+
+
     for (
         const powerUp
         of powerUps
@@ -842,7 +851,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#FF0000";
+                "#FF3B81";
 
         }
 
@@ -852,7 +861,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#FFFFFF";
+                "#F5F5F5";
 
         }
 
@@ -862,7 +871,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#FFB6C1";
+                "#B66DFF";
 
         }
 
@@ -872,7 +881,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#FF6600";
+                "#FF6A00";
 
         }
 
@@ -903,7 +912,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#000000";
+                "#174A24";
 
         }
 
@@ -913,7 +922,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#4A2A16";
+                "#7A3E18";
 
         }
 
@@ -923,7 +932,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#555555";
+                "#FFD400";
 
         }
 
@@ -933,7 +942,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#663399";
+                "#7138A6";
 
         }
 
@@ -943,7 +952,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#EEEEEE";
+                "#8DEBFF";
 
         }
 
@@ -953,7 +962,7 @@ function drawGame() {
         ) {
 
             ctx.fillStyle =
-                "#228B22";
+                "#31A84A";
 
         }
 
@@ -996,8 +1005,41 @@ function drawGame() {
     }
 
 
-    ctx.fillStyle =
-        "#FF69B4";
+    if (
+        player.power ===
+        "bunny"
+    ) {
+
+        ctx.fillStyle =
+            "#B66DFF";
+
+    }
+
+    else if (
+        player.power ===
+        "fire"
+    ) {
+
+        ctx.fillStyle =
+            "#FF6A00";
+
+    }
+
+    else if (
+        player.isBig
+    ) {
+
+        ctx.fillStyle =
+            "#FF3B81";
+
+    }
+
+    else {
+
+        ctx.fillStyle =
+            "#3D7EFF";
+
+    }
 
 
     ctx.fillRect(
