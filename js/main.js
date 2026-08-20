@@ -13,7 +13,8 @@ import {
 import {
     getCurrentLevel,
     WORLD_WIDTH,
-    nextLevel
+    nextLevel,
+    setLevel
 } from "./levels.js";
 
 import {
@@ -52,12 +53,35 @@ import {
     toggleMusic,
     toggleSound,
     isInsideButton,
-    drawButton
+    drawButton,
+    drawMainMenu,
+    drawHowToPlayScreen,
+    drawSettingsScreen
 } from "./menu.js";
 
+import {
+    getSelectedWorld,
+    getSelectedLevel,
+    setSelectedWorld,
+    setSelectedLevel,
+    getWorldMap,
+    drawWorldMap
+} from "./worldmap.js";
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+import {
+    isWorldUnlocked,
+    isLevelUnlocked,
+    completeLevel,
+    getCoinCount
+} from "./progression.js";
+
+
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
+
 
 canvas.width = 960;
 canvas.height = 540;
@@ -67,71 +91,159 @@ ctx.imageSmoothingEnabled = false;
 
 const keys = {};
 
+
 let enemies = [];
 let powerUps = [];
 let blocks = [];
 
 
-document.addEventListener("keydown", event => {
+let mapCharacter = {
+    x: 150,
+    y: 390
+};
 
-    const key = event.key.toLowerCase();
 
-    keys[key] = true;
+let mapTarget = {
+    x: 150,
+    y: 390
+};
 
-    if (
-        key === " " ||
-        key === "arrowup" ||
-        key === "arrowdown" ||
-        key === "arrowleft" ||
-        key === "arrowright"
-    ) {
-        event.preventDefault();
-    }
 
-    if (gameState === GAME_STATES.PLAYING) {
+document.addEventListener(
+    "keydown",
+    event => {
+
+        const key =
+            event.key.toLowerCase();
+
+        keys[key] = true;
+
 
         if (
             key === " " ||
             key === "arrowup" ||
-            key === "w"
+            key === "arrowdown" ||
+            key === "arrowleft" ||
+            key === "arrowright"
         ) {
-            jump();
+
+            event.preventDefault();
+
         }
+
+
+        if (
+            gameState ===
+            GAME_STATES.PLAYING
+        ) {
+
+            if (
+                key === " " ||
+                key === "arrowup" ||
+                key === "w"
+            ) {
+
+                jump();
+
+            }
+
+        }
+
+
+        if (
+            gameState ===
+            GAME_STATES.WORLD_MAP
+        ) {
+
+            if (
+                key === "arrowright" ||
+                key === "d"
+            ) {
+
+                switchWorld(1);
+
+            }
+
+
+            if (
+                key === "arrowleft" ||
+                key === "a"
+            ) {
+
+                switchWorld(-1);
+
+            }
+
+
+            if (
+                key === "enter" ||
+                key === " "
+            ) {
+
+                openSelectedLevel();
+
+            }
+
+        }
+
     }
-});
+);
 
 
-document.addEventListener("keyup", event => {
+document.addEventListener(
+    "keyup",
+    event => {
 
-    keys[event.key.toLowerCase()] = false;
+        keys[
+            event.key.toLowerCase()
+        ] = false;
 
-});
+    }
+);
 
 
 function createEnemyFromData(data) {
 
     if (data.type === "beetle") {
-        return createBeetle(data.x, data.y);
+        return createBeetle(
+            data.x,
+            data.y
+        );
     }
 
     if (data.type === "cockroach") {
-        return createCockroach(data.x, data.y);
+        return createCockroach(
+            data.x,
+            data.y
+        );
     }
 
     if (data.type === "fly") {
-        return createFly(data.x, data.y);
+        return createFly(
+            data.x,
+            data.y
+        );
     }
 
     if (data.type === "spider") {
-        return createSpider(data.x, data.y);
+        return createSpider(
+            data.x,
+            data.y
+        );
     }
 
     if (data.type === "ghost") {
-        return createGhost(data.x, data.y);
+        return createGhost(
+            data.x,
+            data.y
+        );
     }
 
     if (data.type === "cactus") {
-        return createCactus(data.x, data.y);
+        return createCactus(
+            data.x,
+            data.y
+        );
     }
 
     return null;
@@ -140,205 +252,467 @@ function createEnemyFromData(data) {
 
 function loadLevelObjects() {
 
-    const level = getCurrentLevel();
+    const level =
+        getCurrentLevel();
+
 
     enemies = [];
     powerUps = [];
 
-    blocks = createBlocks(
-        level.blocks || []
-    );
 
-    for (const enemyData of level.enemies) {
+    blocks =
+        createBlocks(
+            level.blocks || []
+        );
+
+
+    for (
+        const enemyData
+        of level.enemies
+    ) {
 
         const enemy =
-            createEnemyFromData(enemyData);
+            createEnemyFromData(
+                enemyData
+            );
 
         if (enemy) {
             enemies.push(enemy);
         }
+
     }
+
 }
 
 
 function resetCurrentLevel() {
 
-    const level = getCurrentLevel();
+    const level =
+        getCurrentLevel();
+
 
     resetPlayer(
         level.spawn.x,
         level.spawn.y
     );
 
+
     camera.x = 0;
     camera.y = 0;
 
+
     loadLevelObjects();
+
 }
 
 
-canvas.addEventListener("click", event => {
+function switchWorld(direction) {
 
-    const rect =
-        canvas.getBoundingClientRect();
+    let world =
+        getSelectedWorld();
 
-    const mouseX =
-        (event.clientX - rect.left) *
-        (canvas.width / rect.width);
-
-    const mouseY =
-        (event.clientY - rect.top) *
-        (canvas.height / rect.height);
+    world += direction;
 
 
-    if (gameState === GAME_STATES.MENU) {
+    if (world < 1) {
+        world = 3;
+    }
 
-        if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                230,
-                300,
-                60
-            )
-        ) {
-
-            resetCurrentLevel();
-
-            setGameState(
-                GAME_STATES.PLAYING
-            );
-
-        }
-
-        else if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                310,
-                300,
-                60
-            )
-        ) {
-
-            setGameState(
-                GAME_STATES.HOW_TO_PLAY
-            );
-
-        }
-
-        else if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                390,
-                300,
-                60
-            )
-        ) {
-
-            setGameState(
-                GAME_STATES.SETTINGS
-            );
-
-        }
+    if (world > 3) {
+        world = 1;
     }
 
 
-    else if (
-        gameState ===
-        GAME_STATES.HOW_TO_PLAY
+    if (
+        isWorldUnlocked(world)
     ) {
 
-        if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                430,
-                300,
-                60
-            )
-        ) {
+        setSelectedWorld(world);
 
-            setGameState(
-                GAME_STATES.MENU
-            );
+        updateMapCharacter();
 
-        }
+    }
+
+}
+
+
+function updateMapCharacter() {
+
+    const map =
+        getWorldMap();
+
+    const level =
+        getSelectedLevel();
+
+    const node =
+        map.nodes[level - 1];
+
+
+    if (!node) {
+        return;
     }
 
 
-    else if (
-        gameState ===
-        GAME_STATES.SETTINGS
+    mapTarget.x =
+        node.x;
+
+    mapTarget.y =
+        node.y;
+
+
+    if (
+        !mapCharacter.x &&
+        !mapCharacter.y
     ) {
 
+        mapCharacter.x =
+            node.x;
+
+        mapCharacter.y =
+            node.y;
+
+    }
+
+}
+
+
+function openSelectedLevel() {
+
+    const world =
+        getSelectedWorld();
+
+    const level =
+        getSelectedLevel();
+
+
+    if (
+        !isLevelUnlocked(
+            world,
+            level
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    setLevel(
+        world,
+        level
+    );
+
+
+    resetCurrentLevel();
+
+
+    setGameState(
+        GAME_STATES.PLAYING
+    );
+
+}
+
+
+function updateWorldMap() {
+
+    const dx =
+        mapTarget.x -
+        mapCharacter.x;
+
+    const dy =
+        mapTarget.y -
+        mapCharacter.y;
+
+
+    const distance =
+        Math.sqrt(
+            dx * dx +
+            dy * dy
+        );
+
+
+    if (
+        distance > 2
+    ) {
+
+        mapCharacter.x +=
+            dx * 0.08;
+
+        mapCharacter.y +=
+            dy * 0.08;
+
+    }
+
+}
+
+
+canvas.addEventListener(
+    "click",
+    event => {
+
+        const rect =
+            canvas.getBoundingClientRect();
+
+
+        const mouseX =
+            (event.clientX -
+                rect.left) *
+            (canvas.width /
+                rect.width);
+
+
+        const mouseY =
+            (event.clientY -
+                rect.top) *
+            (canvas.height /
+                rect.height);
+
+
         if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                230,
-                300,
-                60
-            )
+            gameState ===
+            GAME_STATES.MENU
         ) {
 
-            toggleMusic();
+            if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    245,
+                    300,
+                    60
+                )
+            ) {
+
+                setGameState(
+                    GAME_STATES.WORLD_MAP
+                );
+
+                updateMapCharacter();
+
+            }
+
+
+            else if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    320,
+                    300,
+                    60
+                )
+            ) {
+
+                setGameState(
+                    GAME_STATES.HOW_TO_PLAY
+                );
+
+            }
+
+
+            else if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    395,
+                    300,
+                    60
+                )
+            ) {
+
+                setGameState(
+                    GAME_STATES.SETTINGS
+                );
+
+            }
 
         }
 
-        else if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                310,
-                300,
-                60
-            )
-        ) {
-
-            toggleSound();
-
-        }
 
         else if (
-            isInsideButton(
-                mouseX,
-                mouseY,
-                330,
-                390,
-                300,
-                60
-            )
+            gameState ===
+            GAME_STATES.WORLD_MAP
         ) {
 
-            setGameState(
-                GAME_STATES.MENU
+            handleWorldMapClick(
+                mouseX,
+                mouseY
             );
 
         }
+
+
+        else if (
+            gameState ===
+            GAME_STATES.HOW_TO_PLAY
+        ) {
+
+            if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    445,
+                    300,
+                    55
+                )
+            ) {
+
+                setGameState(
+                    GAME_STATES.MENU
+                );
+
+            }
+
+        }
+
+
+        else if (
+            gameState ===
+            GAME_STATES.SETTINGS
+        ) {
+
+            if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    210,
+                    300,
+                    60
+                )
+            ) {
+
+                toggleMusic();
+
+            }
+
+
+            else if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    285,
+                    300,
+                    60
+                )
+            ) {
+
+                toggleSound();
+
+            }
+
+
+            else if (
+                isInsideButton(
+                    mouseX,
+                    mouseY,
+                    330,
+                    390,
+                    300,
+                    60
+                )
+            ) {
+
+                setGameState(
+                    GAME_STATES.MENU
+                );
+
+            }
+
+        }
+
+    }
+);
+
+
+function handleWorldMapClick(
+    mouseX,
+    mouseY
+) {
+
+    const map =
+        getWorldMap();
+
+
+    for (
+        let i = 0;
+        i < map.nodes.length;
+        i++
+    ) {
+
+        const node =
+            map.nodes[i];
+
+        const level =
+            i + 1;
+
+
+        const distance =
+            Math.sqrt(
+                (mouseX - node.x) ** 2 +
+                (mouseY - node.y) ** 2
+            );
+
+
+        if (
+            distance <= 35 &&
+            isLevelUnlocked(
+                getSelectedWorld(),
+                level
+            )
+        ) {
+
+            setSelectedLevel(
+                level
+            );
+
+            mapTarget.x =
+                node.x;
+
+            mapTarget.y =
+                node.y;
+
+            openSelectedLevel();
+
+            return;
+
+        }
+
     }
 
-});
+}
 
 
 function update() {
 
     if (
-        gameState !==
-        GAME_STATES.PLAYING
+        gameState ===
+        GAME_STATES.WORLD_MAP
     ) {
+
+        updateWorldMap();
+
         return;
+
     }
 
 
-    const level = getCurrentLevel();
+    if (
+        gameState !==
+        GAME_STATES.PLAYING
+    ) {
+
+        return;
+
+    }
+
+
+    const level =
+        getCurrentLevel();
 
 
     updatePlayer(
@@ -347,16 +721,16 @@ function update() {
     );
 
 
-    for (const enemy of enemies) {
-
-        if (!enemy.alive) {
-            continue;
-        }
+    for (
+        const enemy
+        of enemies
+    ) {
 
         updateEnemy(
             enemy,
             level.platforms
         );
+
     }
 
 
@@ -367,7 +741,10 @@ function update() {
         );
 
 
-    for (const item of releasedItems) {
+    for (
+        const item
+        of releasedItems
+    ) {
 
         const powerUp =
             createPowerUp(
@@ -376,9 +753,15 @@ function update() {
                 item.y
             );
 
+
         if (powerUp) {
-            powerUps.push(powerUp);
+
+            powerUps.push(
+                powerUp
+            );
+
         }
+
     }
 
 
@@ -388,11 +771,10 @@ function update() {
     );
 
 
-    for (const powerUp of powerUps) {
-
-        if (powerUp.collected) {
-            continue;
-        }
+    for (
+        const powerUp
+        of powerUps
+    ) {
 
         if (
             checkPowerUpCollision(
@@ -405,15 +787,21 @@ function update() {
                 player,
                 powerUp
             );
+
         }
+
     }
 
 
-    for (const enemy of enemies) {
+    for (
+        const enemy
+        of enemies
+    ) {
 
         if (!enemy.alive) {
             continue;
         }
+
 
         if (
             !checkEnemyCollision(
@@ -421,7 +809,9 @@ function update() {
                 enemy
             )
         ) {
+
             continue;
+
         }
 
 
@@ -432,9 +822,12 @@ function update() {
             )
         ) {
 
-            defeatEnemy(enemy);
+            defeatEnemy(
+                enemy
+            );
 
-            player.velocityY = -7;
+            player.velocityY =
+                -7;
 
         }
 
@@ -443,7 +836,9 @@ function update() {
             resetCurrentLevel();
 
             return;
+
         }
+
     }
 
 
@@ -454,7 +849,8 @@ function update() {
     );
 
 
-    const exit = level.exit;
+    const exit =
+        level.exit;
 
 
     const reachedExit =
@@ -473,11 +869,35 @@ function update() {
 
     if (reachedExit) {
 
+        const world =
+            getSelectedWorld();
+
+        const currentLevel =
+            getSelectedLevel();
+
+
+        completeLevel(
+            world,
+            currentLevel
+        );
+
+
         if (nextLevel()) {
 
             resetCurrentLevel();
 
         }
+
+        else {
+
+            setGameState(
+                GAME_STATES.WORLD_MAP
+            );
+
+            updateMapCharacter();
+
+        }
+
     }
 
 
@@ -489,534 +909,14 @@ function update() {
         resetCurrentLevel();
 
     }
-}
-
-
-function drawMenuBackground() {
-
-    ctx.fillStyle = "#87CEEB";
-
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-}
-
-
-function drawMenu() {
-
-    drawMenuBackground();
-
-    ctx.fillStyle = "#000000";
-
-    ctx.font = "bold 56px Arial";
-
-    ctx.textAlign = "center";
-
-    ctx.fillText(
-        "BIRTHDAY ADVENTURE",
-        canvas.width / 2,
-        150
-    );
-
-
-    drawButton(
-        ctx,
-        "PLAY",
-        330,
-        230,
-        300,
-        60
-    );
-
-
-    drawButton(
-        ctx,
-        "HOW TO PLAY",
-        330,
-        310,
-        300,
-        60
-    );
-
-
-    drawButton(
-        ctx,
-        "SETTINGS",
-        330,
-        390,
-        300,
-        60
-    );
-
-}
-
-
-function drawHowToPlay() {
-
-    drawMenuBackground();
-
-    ctx.fillStyle = "#000000";
-
-    ctx.font = "bold 48px Arial";
-
-    ctx.textAlign = "center";
-
-    ctx.fillText(
-        "HOW TO PLAY",
-        canvas.width / 2,
-        90
-    );
-
-
-    ctx.font = "24px Arial";
-
-    ctx.fillText(
-        "A / D or LEFT / RIGHT = MOVE",
-        canvas.width / 2,
-        180
-    );
-
-
-    ctx.fillText(
-        "SPACE / W / UP = JUMP",
-        canvas.width / 2,
-        225
-    );
-
-
-    drawButton(
-        ctx,
-        "BACK",
-        330,
-        430,
-        300,
-        60
-    );
-
-}
-
-
-function drawSettings() {
-
-    drawMenuBackground();
-
-    ctx.fillStyle = "#000000";
-
-    ctx.font = "bold 48px Arial";
-
-    ctx.textAlign = "center";
-
-    ctx.fillText(
-        "SETTINGS",
-        canvas.width / 2,
-        100
-    );
-
-
-    drawButton(
-        ctx,
-        "MUSIC: " +
-        (musicEnabled ? "ON" : "OFF"),
-        330,
-        230,
-        300,
-        60
-    );
-
-
-    drawButton(
-        ctx,
-        "SOUND: " +
-        (soundEnabled ? "ON" : "OFF"),
-        330,
-        310,
-        300,
-        60
-    );
-
-
-    drawButton(
-        ctx,
-        "BACK",
-        330,
-        390,
-        300,
-        60
-    );
-
-}
-
-
-function drawPlatform(platform) {
-
-    ctx.fillStyle = "#6B421F";
-
-    ctx.fillRect(
-        platform.x,
-        platform.y,
-        platform.width,
-        platform.height
-    );
-
-
-    ctx.fillStyle = "#72B832";
-
-    ctx.fillRect(
-        platform.x,
-        platform.y,
-        platform.width,
-        10
-    );
-
-
-    ctx.fillStyle = "#8ED04B";
-
-    for (
-        let x = platform.x;
-        x < platform.x + platform.width;
-        x += 32
-    ) {
-
-        ctx.fillRect(
-            x,
-            platform.y,
-            16,
-            4
-        );
-    }
-}
-
-
-function drawPowerUp(powerUp) {
-
-    if (powerUp.collected) {
-        return;
-    }
-
-
-    let mainColor = "#FFFFFF";
-    let secondaryColor = "#FFFFFF";
-
-
-    if (
-        powerUp.type ===
-        ITEM_TYPES.STRAWBERRY
-    ) {
-
-        mainColor = "#FF3B81";
-        secondaryColor = "#7ED957";
-
-    }
-
-    else if (
-        powerUp.type ===
-        ITEM_TYPES.WINGS
-    ) {
-
-        mainColor = "#F5F5F5";
-        secondaryColor = "#9DD9FF";
-
-    }
-
-    else if (
-        powerUp.type ===
-        ITEM_TYPES.BUNNY
-    ) {
-
-        mainColor = "#B66DFF";
-        secondaryColor = "#E3C4FF";
-
-    }
-
-    else if (
-        powerUp.type ===
-        ITEM_TYPES.FIRE
-    ) {
-
-        mainColor = "#FF6A00";
-        secondaryColor = "#FFD23F";
-
-    }
-
-
-    ctx.fillStyle = mainColor;
-
-    ctx.fillRect(
-        powerUp.x + 4,
-        powerUp.y + 4,
-        powerUp.width - 8,
-        powerUp.height - 8
-    );
-
-
-    ctx.fillStyle = secondaryColor;
-
-    ctx.fillRect(
-        powerUp.x + 10,
-        powerUp.y + 8,
-        8,
-        8
-    );
-
-
-    ctx.fillRect(
-        powerUp.x + 18,
-        powerUp.y + 16,
-        6,
-        6
-    );
-}
-
-
-function drawEnemy(enemy) {
-
-    if (!enemy.alive) {
-        return;
-    }
-
-
-    if (enemy.type === "beetle") {
-        ctx.fillStyle = "#174A24";
-    }
-
-    else if (enemy.type === "cockroach") {
-        ctx.fillStyle = "#7A3E18";
-    }
-
-    else if (enemy.type === "fly") {
-        ctx.fillStyle = "#FFD400";
-    }
-
-    else if (enemy.type === "spider") {
-        ctx.fillStyle = "#7138A6";
-    }
-
-    else if (enemy.type === "ghost") {
-        ctx.fillStyle = "#8DEBFF";
-    }
-
-    else if (enemy.type === "cactus") {
-        ctx.fillStyle = "#31A84A";
-    }
-
-    else {
-        ctx.fillStyle = "#FF00FF";
-    }
-
-
-    ctx.fillRect(
-        enemy.x,
-        enemy.y,
-        enemy.width,
-        enemy.height
-    );
-
-
-    ctx.fillStyle = "#000000";
-
-    const eyeSize = 4;
-
-    ctx.fillRect(
-        enemy.x + enemy.width * 0.25,
-        enemy.y + enemy.height * 0.25,
-        eyeSize,
-        eyeSize
-    );
-
-    ctx.fillRect(
-        enemy.x + enemy.width * 0.65,
-        enemy.y + enemy.height * 0.25,
-        eyeSize,
-        eyeSize
-    );
-}
-
-
-function drawPlayer() {
-
-    const x = player.x;
-    const y = player.y;
-
-    const width = player.width;
-    const height = player.height;
-
-
-    let mainColor = "#3D7EFF";
-    let accentColor = "#8DB1FF";
-
-
-    if (player.isBig) {
-
-        mainColor = "#FF3B81";
-        accentColor = "#FF9FC3";
-
-    }
-
-
-    if (player.power === "wings") {
-
-        mainColor = "#FFFFFF";
-        accentColor = "#9DD9FF";
-
-
-        ctx.fillStyle = "#9DD9FF";
-
-        ctx.fillRect(
-            x - 10,
-            y + 14,
-            10,
-            22
-        );
-
-        ctx.fillRect(
-            x + width,
-            y + 14,
-            10,
-            22
-        );
-    }
-
-
-    if (player.power === "bunny") {
-
-        mainColor = "#B66DFF";
-        accentColor = "#E3C4FF";
-
-
-        ctx.fillStyle = accentColor;
-
-        ctx.fillRect(
-            x + 7,
-            y - 12,
-            7,
-            16
-        );
-
-        ctx.fillRect(
-            x + width - 14,
-            y - 12,
-            7,
-            16
-        );
-    }
-
-
-    if (player.power === "fire") {
-
-        mainColor = "#FF6A00";
-        accentColor = "#FFD23F";
-    }
-
-
-    const headHeight =
-        Math.max(
-            12,
-            Math.floor(height * 0.30)
-        );
-
-
-    const bodyY =
-        y + headHeight;
-
-
-    ctx.fillStyle = mainColor;
-
-    ctx.fillRect(
-        x,
-        bodyY,
-        width,
-        height - headHeight
-    );
-
-
-    ctx.fillStyle = accentColor;
-
-    ctx.fillRect(
-        x + 4,
-        y + 3,
-        width - 8,
-        headHeight - 4
-    );
-
-
-    ctx.fillStyle = "#000000";
-
-
-    const eyeSize =
-        Math.max(
-            3,
-            Math.floor(width / 10)
-        );
-
-
-    ctx.fillRect(
-        x + width * 0.25,
-        y + headHeight * 0.35,
-        eyeSize,
-        eyeSize
-    );
-
-
-    ctx.fillRect(
-        x + width * 0.65,
-        y + headHeight * 0.35,
-        eyeSize,
-        eyeSize
-    );
-
-
-    if (player.power === "fire") {
-
-        ctx.fillStyle = "#FFD23F";
-
-        ctx.fillRect(
-            x + width / 2 - 5,
-            y - 6,
-            10,
-            7
-        );
-    }
-}
-
-
-function drawExit(exit) {
-
-    ctx.fillStyle = "#65D84A";
-
-    ctx.fillRect(
-        exit.x,
-        exit.y,
-        exit.width,
-        exit.height
-    );
-
-
-    ctx.fillStyle = "#FFFFFF";
-
-    ctx.fillRect(
-        exit.x + 8,
-        exit.y + 12,
-        exit.width - 16,
-        8
-    );
-
-    ctx.fillRect(
-        exit.x + 8,
-        exit.y + 28,
-        exit.width - 16,
-        8
-    );
 
 }
 
 
 function drawGame() {
 
-    ctx.fillStyle = "#87CEEB";
+    ctx.fillStyle =
+        "#87CEEB";
 
     ctx.fillRect(
         0,
@@ -1044,7 +944,15 @@ function drawGame() {
         of level.platforms
     ) {
 
-        drawPlatform(platform);
+        ctx.fillStyle =
+            "#8B5A2B";
+
+        ctx.fillRect(
+            platform.x,
+            platform.y,
+            platform.width,
+            platform.height
+        );
 
     }
 
@@ -1056,13 +964,23 @@ function drawGame() {
 
         drawBlock(
             ctx,
-            block
+            block,
+            camera.x,
+            camera.y
         );
 
     }
 
 
-    drawExit(level.exit);
+    ctx.fillStyle =
+        "#00FF00";
+
+    ctx.fillRect(
+        level.exit.x,
+        level.exit.y,
+        level.exit.width,
+        level.exit.height
+    );
 
 
     for (
@@ -1070,7 +988,62 @@ function drawGame() {
         of powerUps
     ) {
 
-        drawPowerUp(powerUp);
+        if (
+            powerUp.collected
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
+            powerUp.type ===
+            ITEM_TYPES.STRAWBERRY
+        ) {
+
+            ctx.fillStyle =
+                "#FF3B81";
+
+        }
+
+        else if (
+            powerUp.type ===
+            ITEM_TYPES.WINGS
+        ) {
+
+            ctx.fillStyle =
+                "#F5F5F5";
+
+        }
+
+        else if (
+            powerUp.type ===
+            ITEM_TYPES.BUNNY
+        ) {
+
+            ctx.fillStyle =
+                "#B66DFF";
+
+        }
+
+        else if (
+            powerUp.type ===
+            ITEM_TYPES.FIRE
+        ) {
+
+            ctx.fillStyle =
+                "#FF6A00";
+
+        }
+
+
+        ctx.fillRect(
+            powerUp.x,
+            powerUp.y,
+            powerUp.width,
+            powerUp.height
+        );
 
     }
 
@@ -1080,47 +1053,152 @@ function drawGame() {
         of enemies
     ) {
 
-        drawEnemy(enemy);
+        if (!enemy.alive) {
+            continue;
+        }
+
+
+        const colors = {
+            beetle: "#174A24",
+            cockroach: "#7A3E18",
+            fly: "#FFD400",
+            spider: "#7138A6",
+            ghost: "#8DEBFF",
+            cactus: "#31A84A"
+        };
+
+
+        ctx.fillStyle =
+            colors[enemy.type] ||
+            "#FF00FF";
+
+
+        ctx.fillRect(
+            enemy.x,
+            enemy.y,
+            enemy.width,
+            enemy.height
+        );
 
     }
 
 
-    drawPlayer();
+    if (
+        player.power ===
+        "wings"
+    ) {
+
+        ctx.fillStyle =
+            "#FFFFFF";
+
+
+        ctx.fillRect(
+            player.x - 10,
+            player.y + 12,
+            10,
+            24
+        );
+
+
+        ctx.fillRect(
+            player.x +
+                player.width,
+            player.y + 12,
+            10,
+            24
+        );
+
+    }
+
+
+    if (
+        player.power ===
+        "bunny"
+    ) {
+
+        ctx.fillStyle =
+            "#B66DFF";
+
+    }
+
+    else if (
+        player.power ===
+        "fire"
+    ) {
+
+        ctx.fillStyle =
+            "#FF6A00";
+
+    }
+
+    else if (
+        player.isBig
+    ) {
+
+        ctx.fillStyle =
+            "#FF3B81";
+
+    }
+
+    else {
+
+        ctx.fillStyle =
+            "#3D7EFF";
+
+    }
+
+
+    ctx.fillRect(
+        player.x,
+        player.y,
+        player.width,
+        player.height
+    );
 
 
     ctx.restore();
 
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle =
+        "#FFFFFF";
 
-    ctx.font = "18px Arial";
+    ctx.font =
+        "bold 20px Arial";
 
-    ctx.textAlign = "left";
+    ctx.textAlign =
+        "left";
+
 
     ctx.fillText(
         "WORLD " +
-        getWorldNumber() +
-        "  •  LEVEL " +
-        getLevelNumber(),
+        getSelectedWorld() +
+        "  LEVEL " +
+        getSelectedLevel(),
         20,
         30
+    );
+
+
+    ctx.fillText(
+        "🪙 " +
+        getCoinCount(
+            getSelectedWorld(),
+            getSelectedLevel()
+        ),
+        20,
+        60
     );
 
 }
 
 
-function getWorldNumber() {
+function drawWorldMapScreen() {
 
-    const level =
-        getCurrentLevel();
+    drawWorldMap(
+        ctx,
+        mapCharacter
+    );
 
-    return level.world || "";
-}
-
-
-function getLevelNumber() {
-
-    return "";
 }
 
 
@@ -1131,27 +1209,40 @@ function draw() {
         GAME_STATES.MENU
     ) {
 
-        drawMenu();
+        drawMainMenu(ctx);
 
     }
+
+
+    else if (
+        gameState ===
+        GAME_STATES.WORLD_MAP
+    ) {
+
+        drawWorldMapScreen();
+
+    }
+
 
     else if (
         gameState ===
         GAME_STATES.HOW_TO_PLAY
     ) {
 
-        drawHowToPlay();
+        drawHowToPlayScreen(ctx);
 
     }
+
 
     else if (
         gameState ===
         GAME_STATES.SETTINGS
     ) {
 
-        drawSettings();
+        drawSettingsScreen(ctx);
 
     }
+
 
     else if (
         gameState ===
