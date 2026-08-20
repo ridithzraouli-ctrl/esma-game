@@ -56,11 +56,8 @@ import {
 } from "./menu.js";
 
 
-const canvas =
-    document.getElementById("game");
-
-const ctx =
-    canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
 canvas.width = 960;
 canvas.height = 540;
@@ -75,102 +72,66 @@ let powerUps = [];
 let blocks = [];
 
 
-document.addEventListener(
-    "keydown",
-    event => {
+document.addEventListener("keydown", event => {
 
-        const key =
-            event.key.toLowerCase();
+    const key = event.key.toLowerCase();
 
-        keys[key] = true;
+    keys[key] = true;
 
+    if (
+        key === " " ||
+        key === "arrowup" ||
+        key === "arrowdown" ||
+        key === "arrowleft" ||
+        key === "arrowright"
+    ) {
+        event.preventDefault();
+    }
+
+    if (gameState === GAME_STATES.PLAYING) {
 
         if (
             key === " " ||
             key === "arrowup" ||
-            key === "arrowdown" ||
-            key === "arrowleft" ||
-            key === "arrowright"
+            key === "w"
         ) {
-            event.preventDefault();
+            jump();
         }
-
-
-        if (
-            gameState ===
-            GAME_STATES.PLAYING
-        ) {
-
-            if (
-                key === " " ||
-                key === "arrowup" ||
-                key === "w"
-            ) {
-
-                jump();
-
-            }
-
-        }
-
     }
-);
+});
 
 
-document.addEventListener(
-    "keyup",
-    event => {
+document.addEventListener("keyup", event => {
 
-        keys[
-            event.key.toLowerCase()
-        ] = false;
+    keys[event.key.toLowerCase()] = false;
 
-    }
-);
+});
 
 
 function createEnemyFromData(data) {
 
     if (data.type === "beetle") {
-        return createBeetle(
-            data.x,
-            data.y
-        );
+        return createBeetle(data.x, data.y);
     }
 
     if (data.type === "cockroach") {
-        return createCockroach(
-            data.x,
-            data.y
-        );
+        return createCockroach(data.x, data.y);
     }
 
     if (data.type === "fly") {
-        return createFly(
-            data.x,
-            data.y
-        );
+        return createFly(data.x, data.y);
     }
 
     if (data.type === "spider") {
-        return createSpider(
-            data.x,
-            data.y
-        );
+        return createSpider(data.x, data.y);
     }
 
     if (data.type === "ghost") {
-        return createGhost(
-            data.x,
-            data.y
-        );
+        return createGhost(data.x, data.y);
     }
 
     if (data.type === "cactus") {
-        return createCactus(
-            data.x,
-            data.y
-        );
+        return createCactus(data.x, data.y);
     }
 
     return null;
@@ -179,224 +140,192 @@ function createEnemyFromData(data) {
 
 function loadLevelObjects() {
 
-    const level =
-        getCurrentLevel();
-
+    const level = getCurrentLevel();
 
     enemies = [];
     powerUps = [];
 
+    blocks = createBlocks(
+        level.blocks || []
+    );
 
-    blocks =
-        createBlocks(
-            level.blocks || []
-        );
-
-
-    for (
-        const enemyData
-        of level.enemies
-    ) {
+    for (const enemyData of level.enemies) {
 
         const enemy =
-            createEnemyFromData(
-                enemyData
-            );
+            createEnemyFromData(enemyData);
 
         if (enemy) {
             enemies.push(enemy);
         }
-
     }
-
 }
 
 
 function resetCurrentLevel() {
 
-    const level =
-        getCurrentLevel();
-
+    const level = getCurrentLevel();
 
     resetPlayer(
         level.spawn.x,
         level.spawn.y
     );
 
-
     camera.x = 0;
     camera.y = 0;
 
-
     loadLevelObjects();
-
 }
 
 
-canvas.addEventListener(
-    "click",
-    event => {
+canvas.addEventListener("click", event => {
 
-        const rect =
-            canvas.getBoundingClientRect();
+    const rect =
+        canvas.getBoundingClientRect();
+
+    const mouseX =
+        (event.clientX - rect.left) *
+        (canvas.width / rect.width);
+
+    const mouseY =
+        (event.clientY - rect.top) *
+        (canvas.height / rect.height);
 
 
-        const mouseX =
-            (event.clientX -
-                rect.left) *
-            (canvas.width /
-                rect.width);
-
-
-        const mouseY =
-            (event.clientY -
-                rect.top) *
-            (canvas.height /
-                rect.height);
-
+    if (gameState === GAME_STATES.MENU) {
 
         if (
-            gameState ===
-            GAME_STATES.MENU
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                230,
+                300,
+                60
+            )
         ) {
 
-            if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    230,
-                    300,
-                    60
-                )
-            ) {
+            resetCurrentLevel();
 
-                resetCurrentLevel();
-
-                setGameState(
-                    GAME_STATES.PLAYING
-                );
-
-            }
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    310,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.HOW_TO_PLAY
-                );
-
-            }
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    390,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.SETTINGS
-                );
-
-            }
+            setGameState(
+                GAME_STATES.PLAYING
+            );
 
         }
-
 
         else if (
-            gameState ===
-            GAME_STATES.HOW_TO_PLAY
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                310,
+                300,
+                60
+            )
         ) {
 
-            if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    430,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.MENU
-                );
-
-            }
+            setGameState(
+                GAME_STATES.HOW_TO_PLAY
+            );
 
         }
-
 
         else if (
-            gameState ===
-            GAME_STATES.SETTINGS
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                390,
+                300,
+                60
+            )
         ) {
 
-            if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    230,
-                    300,
-                    60
-                )
-            ) {
-
-                toggleMusic();
-
-            }
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    310,
-                    300,
-                    60
-                )
-            ) {
-
-                toggleSound();
-
-            }
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    390,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.MENU
-                );
-
-            }
+            setGameState(
+                GAME_STATES.SETTINGS
+            );
 
         }
-
     }
-);
+
+
+    else if (
+        gameState ===
+        GAME_STATES.HOW_TO_PLAY
+    ) {
+
+        if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                430,
+                300,
+                60
+            )
+        ) {
+
+            setGameState(
+                GAME_STATES.MENU
+            );
+
+        }
+    }
+
+
+    else if (
+        gameState ===
+        GAME_STATES.SETTINGS
+    ) {
+
+        if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                230,
+                300,
+                60
+            )
+        ) {
+
+            toggleMusic();
+
+        }
+
+        else if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                310,
+                300,
+                60
+            )
+        ) {
+
+            toggleSound();
+
+        }
+
+        else if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                390,
+                300,
+                60
+            )
+        ) {
+
+            setGameState(
+                GAME_STATES.MENU
+            );
+
+        }
+    }
+
+});
 
 
 function update() {
@@ -409,8 +338,7 @@ function update() {
     }
 
 
-    const level =
-        getCurrentLevel();
+    const level = getCurrentLevel();
 
 
     updatePlayer(
@@ -419,16 +347,16 @@ function update() {
     );
 
 
-    for (
-        const enemy
-        of enemies
-    ) {
+    for (const enemy of enemies) {
+
+        if (!enemy.alive) {
+            continue;
+        }
 
         updateEnemy(
             enemy,
             level.platforms
         );
-
     }
 
 
@@ -439,10 +367,7 @@ function update() {
         );
 
 
-    for (
-        const item
-        of releasedItems
-    ) {
+    for (const item of releasedItems) {
 
         const powerUp =
             createPowerUp(
@@ -451,15 +376,9 @@ function update() {
                 item.y
             );
 
-
         if (powerUp) {
-
-            powerUps.push(
-                powerUp
-            );
-
+            powerUps.push(powerUp);
         }
-
     }
 
 
@@ -469,10 +388,11 @@ function update() {
     );
 
 
-    for (
-        const powerUp
-        of powerUps
-    ) {
+    for (const powerUp of powerUps) {
+
+        if (powerUp.collected) {
+            continue;
+        }
 
         if (
             checkPowerUpCollision(
@@ -485,21 +405,15 @@ function update() {
                 player,
                 powerUp
             );
-
         }
-
     }
 
 
-    for (
-        const enemy
-        of enemies
-    ) {
+    for (const enemy of enemies) {
 
         if (!enemy.alive) {
             continue;
         }
-
 
         if (
             !checkEnemyCollision(
@@ -529,9 +443,7 @@ function update() {
             resetCurrentLevel();
 
             return;
-
         }
-
     }
 
 
@@ -542,8 +454,7 @@ function update() {
     );
 
 
-    const exit =
-        level.exit;
+    const exit = level.exit;
 
 
     const reachedExit =
@@ -567,7 +478,6 @@ function update() {
             resetCurrentLevel();
 
         }
-
     }
 
 
@@ -579,14 +489,12 @@ function update() {
         resetCurrentLevel();
 
     }
-
 }
 
 
 function drawMenuBackground() {
 
-    ctx.fillStyle =
-        "#87CEEB";
+    ctx.fillStyle = "#87CEEB";
 
     ctx.fillRect(
         0,
@@ -602,16 +510,11 @@ function drawMenu() {
 
     drawMenuBackground();
 
+    ctx.fillStyle = "#000000";
 
-    ctx.fillStyle =
-        "#000000";
+    ctx.font = "bold 56px Arial";
 
-    ctx.font =
-        "bold 56px Arial";
-
-    ctx.textAlign =
-        "center";
-
+    ctx.textAlign = "center";
 
     ctx.fillText(
         "BIRTHDAY ADVENTURE",
@@ -656,16 +559,11 @@ function drawHowToPlay() {
 
     drawMenuBackground();
 
+    ctx.fillStyle = "#000000";
 
-    ctx.fillStyle =
-        "#000000";
+    ctx.font = "bold 48px Arial";
 
-    ctx.font =
-        "bold 48px Arial";
-
-    ctx.textAlign =
-        "center";
-
+    ctx.textAlign = "center";
 
     ctx.fillText(
         "HOW TO PLAY",
@@ -674,9 +572,7 @@ function drawHowToPlay() {
     );
 
 
-    ctx.font =
-        "24px Arial";
-
+    ctx.font = "24px Arial";
 
     ctx.fillText(
         "A / D or LEFT / RIGHT = MOVE",
@@ -708,16 +604,11 @@ function drawSettings() {
 
     drawMenuBackground();
 
+    ctx.fillStyle = "#000000";
 
-    ctx.fillStyle =
-        "#000000";
+    ctx.font = "bold 48px Arial";
 
-    ctx.font =
-        "bold 48px Arial";
-
-    ctx.textAlign =
-        "center";
-
+    ctx.textAlign = "center";
 
     ctx.fillText(
         "SETTINGS",
@@ -729,9 +620,7 @@ function drawSettings() {
     drawButton(
         ctx,
         "MUSIC: " +
-        (musicEnabled
-            ? "ON"
-            : "OFF"),
+        (musicEnabled ? "ON" : "OFF"),
         330,
         230,
         300,
@@ -742,9 +631,7 @@ function drawSettings() {
     drawButton(
         ctx,
         "SOUND: " +
-        (soundEnabled
-            ? "ON"
-            : "OFF"),
+        (soundEnabled ? "ON" : "OFF"),
         330,
         310,
         300,
@@ -764,349 +651,52 @@ function drawSettings() {
 }
 
 
-function drawGame() {
+function drawPlatform(platform) {
 
-    ctx.fillStyle =
-        "#87CEEB";
+    ctx.fillStyle = "#6B421F";
 
     ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
+        platform.x,
+        platform.y,
+        platform.width,
+        platform.height
     );
 
 
-    const level =
-        getCurrentLevel();
+    ctx.fillStyle = "#72B832";
 
-
-    ctx.save();
-
-
-    ctx.translate(
-        -camera.x,
-        -camera.y
+    ctx.fillRect(
+        platform.x,
+        platform.y,
+        platform.width,
+        10
     );
 
+
+    ctx.fillStyle = "#8ED04B";
 
     for (
-        const platform
-        of level.platforms
+        let x = platform.x;
+        x < platform.x + platform.width;
+        x += 32
     ) {
 
-        ctx.fillStyle =
-            "#8B5A2B";
-
         ctx.fillRect(
-            platform.x,
+            x,
             platform.y,
-            platform.width,
-            platform.height
+            16,
+            4
         );
-
     }
-
-
-    for (
-        const block
-        of blocks
-    ) {
-
-        drawBlock(
-            ctx,
-            block,
-            camera.x,
-            camera.y
-        );
-
-    }
-
-
-    ctx.fillStyle =
-        "#00FF00";
-
-
-    ctx.fillRect(
-        level.exit.x,
-        level.exit.y,
-        level.exit.width,
-        level.exit.height
-    );
-
-
-    for (
-        const powerUp
-        of powerUps
-    ) {
-
-        if (powerUp.collected) {
-            continue;
-        }
-
-
-        if (
-            powerUp.type ===
-            ITEM_TYPES.STRAWBERRY
-        ) {
-
-            ctx.fillStyle =
-                "#FF3B81";
-
-        }
-
-        else if (
-            powerUp.type ===
-            ITEM_TYPES.WINGS
-        ) {
-
-            ctx.fillStyle =
-                "#F5F5F5";
-
-        }
-
-        else if (
-            powerUp.type ===
-            ITEM_TYPES.BUNNY
-        ) {
-
-            ctx.fillStyle =
-                "#B66DFF";
-
-        }
-
-        else if (
-            powerUp.type ===
-            ITEM_TYPES.FIRE
-        ) {
-
-            ctx.fillStyle =
-                "#FF6A00";
-
-        }
-
-
-        ctx.fillRect(
-            powerUp.x,
-            powerUp.y,
-            powerUp.width,
-            powerUp.height
-        );
-
-    }
-
-
-    for (
-        const enemy
-        of enemies
-    ) {
-
-        if (!enemy.alive) {
-            continue;
-        }
-
-
-        if (
-            enemy.type ===
-            "beetle"
-        ) {
-
-            ctx.fillStyle =
-                "#174A24";
-
-        }
-
-        else if (
-            enemy.type ===
-            "cockroach"
-        ) {
-
-            ctx.fillStyle =
-                "#7A3E18";
-
-        }
-
-        else if (
-            enemy.type ===
-            "fly"
-        ) {
-
-            ctx.fillStyle =
-                "#FFD400";
-
-        }
-
-        else if (
-            enemy.type ===
-            "spider"
-        ) {
-
-            ctx.fillStyle =
-                "#7138A6";
-
-        }
-
-        else if (
-            enemy.type ===
-            "ghost"
-        ) {
-
-            ctx.fillStyle =
-                "#8DEBFF";
-
-        }
-
-        else if (
-            enemy.type ===
-            "cactus"
-        ) {
-
-            ctx.fillStyle =
-                "#31A84A";
-
-        }
-
-
-        ctx.fillRect(
-            enemy.x,
-            enemy.y,
-            enemy.width,
-            enemy.height
-        );
-
-    }
-
-
-    if (
-        player.power ===
-        "wings"
-    ) {
-
-        ctx.fillStyle =
-            "#FFFFFF";
-
-
-        ctx.fillRect(
-            player.x - 10,
-            player.y + 12,
-            10,
-            24
-        );
-
-
-        ctx.fillRect(
-            player.x +
-                player.width,
-            player.y + 12,
-            10,
-            24
-        );
-
-    }
-
-
-    if (
-        player.power ===
-        "bunny"
-    ) {
-
-        ctx.fillStyle =
-            "#B66DFF";
-
-    }
-
-    else if (
-        player.power ===
-        "fire"
-    ) {
-
-        ctx.fillStyle =
-            "#FF6A00";
-
-    }
-
-    else if (
-        player.isBig
-    ) {
-
-        ctx.fillStyle =
-            "#FF3B81";
-
-    }
-
-    else {
-
-        ctx.fillStyle =
-            "#3D7EFF";
-
-    }
-
-
-    ctx.fillRect(
-        player.x,
-        player.y,
-        player.width,
-        player.height
-    );
-
-
-    ctx.restore();
-
 }
 
 
-function draw() {
+function drawPowerUp(powerUp) {
 
-    if (
-        gameState ===
-        GAME_STATES.MENU
-    ) {
-
-        drawMenu();
-
+    if (powerUp.collected) {
+        return;
     }
 
-    else if (
-        gameState ===
-        GAME_STATES.HOW_TO_PLAY
-    ) {
 
-        drawHowToPlay();
-
-    }
-
-    else if (
-        gameState ===
-        GAME_STATES.SETTINGS
-    ) {
-
-        drawSettings();
-
-    }
-
-    else if (
-        gameState ===
-        GAME_STATES.PLAYING
-    ) {
-
-        drawGame();
-
-    }
-
-}
-
-
-function gameLoop() {
-
-    update();
-
-    draw();
-
-    requestAnimationFrame(
-        gameLoop
-    );
-
-}
-
-
-gameLoop();
+    let mainColor = "#FFFFFF";
+    let secondaryColor =
