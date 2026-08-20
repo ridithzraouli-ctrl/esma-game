@@ -5,51 +5,32 @@ export let currentLevel = 1;
 
 const TILE = 16;
 
-
-/* =========================
-   BASIC LEVEL HELPERS
-========================= */
-
 function platform(x, y, tiles, height = 2) {
-
     return {
         x,
         y,
         width: tiles * TILE,
         height: height * TILE
     };
-
 }
 
-
 function enemy(type, x, y) {
-
     return {
         type,
         x,
         y
     };
-
 }
 
-
 function block(x, y, type = null) {
-
     return {
         x,
         y,
         type
     };
-
 }
 
-
-/* =========================
-   COINS
-========================= */
-
 function coin(id, x, y) {
-
     return {
         id,
         x,
@@ -57,20 +38,7 @@ function coin(id, x, y) {
         width: 16,
         height: 16
     };
-
 }
-
-
-/*
-    These are automatically added to every level.
-
-    Each level gets 5 coins placed on different
-    platforms.
-
-    The IDs restart at 1 for every level because
-    progression.js remembers them separately
-    for each world + level.
-*/
 
 function generateCoins(platforms) {
 
@@ -80,26 +48,20 @@ function generateCoins(platforms) {
         return coins;
     }
 
-
-    /*
-        Pick platforms spread throughout the level.
-        We avoid putting coins on the very last platform
-        because that's where the exit is.
-    */
-
     const usablePlatforms =
         platforms.slice(
             0,
-            Math.max(1, platforms.length - 1)
+            Math.max(
+                1,
+                platforms.length - 1
+            )
         );
-
 
     const count =
         Math.min(
             5,
             usablePlatforms.length
         );
-
 
     for (
         let i = 0;
@@ -114,36 +76,25 @@ function generateCoins(platforms) {
                 count
             );
 
-
         const p =
             usablePlatforms[index];
-
 
         coins.push(
             coin(
                 i + 1,
-
                 p.x +
                 Math.floor(
                     p.width / 2
                 ) -
                 8,
-
                 p.y - 28
             )
         );
 
     }
 
-
     return coins;
-
 }
-
-
-/* =========================
-   MAKE LEVEL
-========================= */
 
 function makeLevel(
     platforms,
@@ -159,56 +110,30 @@ function makeLevel(
             y: 420
         },
 
-
         platforms,
-
 
         enemies,
 
-
         blocks,
-
-
-        /*
-            NEW:
-            Every level automatically gets
-            its own set of collectible coins.
-        */
 
         coins:
             generateCoins(
                 platforms
             ),
 
-
         exit: {
-
             x: exitX,
-
             y: 430,
-
             width: 16,
-
             height: 40
-
         }
 
     };
-
 }
-
-
-/* =========================================================
-   WORLD 1
-========================================================= */
-
-
-/* WORLD 1 - LEVEL 1 */
 
 const world1Level1 = makeLevel(
 
     [
-
         platform(0, 470, 32),
         platform(576, 470, 20),
         platform(960, 422, 10),
@@ -221,41 +146,31 @@ const world1Level1 = makeLevel(
         platform(2928, 470, 18),
         platform(3296, 422, 14),
         platform(3552, 470, 28)
-
     ],
 
     [
-
         enemy("beetle", 320, 454),
         enemy("beetle", 720, 454),
         enemy("beetle", 1810, 454),
         enemy("beetle", 2360, 454),
         enemy("fly", 1010, 370),
         enemy("fly", 2730, 330)
-
     ],
 
     [
-
         block(352, 406, "strawberry"),
         block(368, 406),
         block(784, 406, "wings"),
         block(800, 406),
         block(1584, 342)
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 1 - LEVEL 2 */
 
 const world1Level2 = makeLevel(
 
     [
-
         platform(0, 470, 24),
         platform(448, 422, 9),
         platform(640, 374, 8),
@@ -273,11 +188,9 @@ const world1Level2 = makeLevel(
         platform(3232, 470, 16),
         platform(3488, 422, 10),
         platform(3680, 470, 20)
-
     ],
 
     [
-
         enemy("beetle", 240, 454),
         enemy("fly", 690, 300),
         enemy("fly", 1060, 300),
@@ -285,11 +198,9 @@ const world1Level2 = makeLevel(
         enemy("cockroach", 1824, 380),
         enemy("fly", 2700, 330),
         enemy("beetle", 3280, 454)
-
     ],
 
     [
-
         block(480, 358),
         block(672, 310, "strawberry"),
         block(848, 262),
@@ -297,20 +208,14 @@ const world1Level2 = makeLevel(
         block(1840, 342, "wings"),
         block(2000, 278),
         block(2672, 326)
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 1 - LEVEL 3 */
 
 const world1Level3 = makeLevel(
 
     [
-
         platform(0, 470, 20),
         platform(352, 422, 8),
         platform(528, 374, 8),
@@ -330,11 +235,9 @@ const world1Level3 = makeLevel(
         platform(3200, 342, 9),
         platform(3392, 406, 9),
         platform(3584, 470, 26)
-
     ],
 
     [
-
         enemy("beetle", 160, 454),
         enemy("fly", 560, 300),
         enemy("fly", 900, 300),
@@ -344,11 +247,9 @@ const world1Level3 = makeLevel(
         enemy("beetle", 2420, 454),
         enemy("fly", 2850, 270),
         enemy("spider", 3210, 310)
-
     ],
 
     [
-
         block(368, 374),
         block(544, 326),
         block(720, 278, "strawberry"),
@@ -357,20 +258,14 @@ const world1Level3 = makeLevel(
         block(1856, 294, "wings"),
         block(2672, 358),
         block(3024, 230)
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 1 - LEVEL 4 */
 
 const world1Level4 = makeLevel(
 
     [
-
         platform(0, 470, 18),
         platform(320, 406, 9),
         platform(512, 342, 8),
@@ -390,11 +285,9 @@ const world1Level4 = makeLevel(
         platform(3296, 326, 10),
         platform(3488, 390, 10),
         platform(3680, 470, 20)
-
     ],
 
     [
-
         enemy("beetle", 180, 454),
         enemy("beetle", 900, 454),
         enemy("cockroach", 1080, 364),
@@ -406,11 +299,9 @@ const world1Level4 = makeLevel(
         enemy("beetle", 2900, 454),
         enemy("cockroach", 3120, 364),
         enemy("fly", 3520, 320)
-
     ],
 
     [
-
         block(336, 358, "strawberry"),
         block(528, 294),
         block(704, 358),
@@ -420,25 +311,14 @@ const world1Level4 = makeLevel(
         block(2096, 310),
         block(2288, 246),
         block(3120, 342)
-
     ],
 
     3824
-
 );
-
-
-/* =========================================================
-   WORLD 2
-========================================================= */
-
-
-/* WORLD 2 - LEVEL 1 */
 
 const world2Level1 = makeLevel(
 
     [
-
         platform(0, 470, 18),
         platform(320, 422, 8),
         platform(496, 374, 8),
@@ -459,11 +339,9 @@ const world2Level1 = makeLevel(
         platform(3360, 470, 10),
         platform(3584, 390, 9),
         platform(3776, 470, 14)
-
     ],
 
     [
-
         enemy("fly", 380, 350),
         enemy("fly", 730, 250),
         enemy("beetle", 1280, 358),
@@ -473,11 +351,9 @@ const world2Level1 = makeLevel(
         enemy("fly", 3020, 270),
         enemy("beetle", 3420, 454),
         enemy("fly", 3630, 320)
-
     ],
 
     [
-
         block(336, 374),
         block(512, 326),
         block(688, 278),
@@ -486,20 +362,14 @@ const world2Level1 = makeLevel(
         block(1824, 342),
         block(2016, 262),
         block(2608, 302)
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 2 - LEVEL 2 */
 
 const world2Level2 = makeLevel(
 
     [
-
         platform(0, 470, 16),
         platform(288, 406, 7),
         platform(448, 342, 7),
@@ -521,11 +391,9 @@ const world2Level2 = makeLevel(
         platform(3328, 246, 8),
         platform(3504, 342, 8),
         platform(3680, 470, 20)
-
     ],
 
     [
-
         enemy("fly", 330, 320),
         enemy("fly", 650, 220),
         enemy("fly", 970, 320),
@@ -537,11 +405,9 @@ const world2Level2 = makeLevel(
         enemy("fly", 2640, 180),
         enemy("ghost", 3170, 250),
         enemy("fly", 3360, 170)
-
     ],
 
     [
-
         block(304, 358),
         block(464, 294),
         block(624, 230, "bunny"),
@@ -551,20 +417,12 @@ const world2Level2 = makeLevel(
         block(1664, 182),
         block(2416, 326),
         block(3168, 294, "bunny")
-
     ],
 
     3824
-
-);
-
-
-/* WORLD 2 - LEVEL 3 */
-
-const world2Level3 = makeLevel(
+);const world2Level3 = makeLevel(
 
     [
-
         platform(0, 470, 14),
         platform(256, 422, 7),
         platform(416, 374, 7),
@@ -586,11 +444,9 @@ const world2Level3 = makeLevel(
         platform(3232, 278, 8),
         platform(3408, 374, 8),
         platform(3584, 470, 26)
-
     ],
 
     [
-
         enemy("fly", 290, 350),
         enemy("fly", 600, 250),
         enemy("fly", 940, 250),
@@ -602,11 +458,9 @@ const world2Level3 = makeLevel(
         enemy("ghost", 2910, 200),
         enemy("fly", 3240, 210),
         enemy("spider", 3410, 342)
-
     ],
 
     [
-
         block(272, 374),
         block(432, 326),
         block(592, 278, "bunny"),
@@ -617,20 +471,14 @@ const world2Level3 = makeLevel(
         block(1984, 230),
         block(2736, 326),
         block(3072, 134, "bunny")
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 2 - LEVEL 4 */
 
 const world2Level4 = makeLevel(
 
     [
-
         platform(0, 470, 16),
         platform(288, 390, 8),
         platform(464, 310, 8),
@@ -652,11 +500,9 @@ const world2Level4 = makeLevel(
         platform(3456, 358, 8),
         platform(3632, 278, 8),
         platform(3792, 470, 13)
-
     ],
 
     [
-
         enemy("fly", 330, 300),
         enemy("ghost", 670, 160),
         enemy("fly", 850, 240),
@@ -671,11 +517,9 @@ const world2Level4 = makeLevel(
         enemy("spider", 3060, 398),
         enemy("ghost", 3480, 270),
         enemy("fly", 3650, 200)
-
     ],
 
     [
-
         block(304, 342),
         block(480, 262),
         block(656, 182, "bunny"),
@@ -687,25 +531,14 @@ const world2Level4 = makeLevel(
         block(2544, 278),
         block(2720, 166),
         block(3472, 310)
-
     ],
 
     3824
-
 );
-
-
-/* =========================================================
-   WORLD 3
-========================================================= */
-
-
-/* WORLD 3 - LEVEL 1 */
 
 const world3Level1 = makeLevel(
 
     [
-
         platform(0, 470, 18),
         platform(320, 406, 8),
         platform(496, 342, 8),
@@ -726,11 +559,9 @@ const world3Level1 = makeLevel(
         platform(3376, 470, 10),
         platform(3584, 390, 8),
         platform(3760, 470, 15)
-
     ],
 
     [
-
         enemy("beetle", 160, 454),
         enemy("cockroach", 350, 380),
         enemy("spider", 520, 316),
@@ -745,11 +576,9 @@ const world3Level1 = makeLevel(
         enemy("ghost", 2880, 180),
         enemy("cactus", 3040, 326),
         enemy("spider", 3600, 374)
-
     ],
 
     [
-
         block(336, 358),
         block(512, 294),
         block(688, 358),
@@ -761,20 +590,14 @@ const world3Level1 = makeLevel(
         block(2688, 294),
         block(2864, 198, "fire"),
         block(3040, 294)
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 3 - LEVEL 2 */
 
 const world3Level2 = makeLevel(
 
     [
-
         platform(0, 470, 14),
         platform(256, 406, 7),
         platform(416, 342, 7),
@@ -796,11 +619,9 @@ const world3Level2 = makeLevel(
         platform(3344, 342, 8),
         platform(3520, 438, 8),
         platform(3696, 470, 19)
-
     ],
 
     [
-
         enemy("cockroach", 290, 370),
         enemy("spider", 430, 316),
         enemy("fly", 620, 210),
@@ -816,11 +637,9 @@ const world3Level2 = makeLevel(
         enemy("cactus", 3180, 198),
         enemy("spider", 3360, 310),
         enemy("ghost", 3540, 340)
-
     ],
 
     [
-
         block(272, 358),
         block(432, 294),
         block(592, 230, "fire"),
@@ -834,20 +653,14 @@ const world3Level2 = makeLevel(
         block(2416, 278),
         block(3008, 294),
         block(3184, 198)
-
     ],
 
     3824
-
 );
-
-
-/* WORLD 3 - LEVEL 3 */
 
 const world3Level3 = makeLevel(
 
     [
-
         platform(0, 470, 12),
         platform(224, 422, 7),
         platform(384, 374, 7),
@@ -870,11 +683,9 @@ const world3Level3 = makeLevel(
         platform(3472, 310, 8),
         platform(3648, 214, 8),
         platform(3824, 470, 11)
-
     ],
 
     [
-
         enemy("fly", 270, 340),
         enemy("spider", 400, 348),
         enemy("fly", 720, 210),
@@ -891,11 +702,9 @@ const world3Level3 = makeLevel(
         enemy("cactus", 3070, 326),
         enemy("spider", 3490, 278),
         enemy("ghost", 3660, 150)
-
     ],
 
     [
-
         block(240, 374),
         block(400, 326),
         block(560, 278, "fire"),
@@ -909,20 +718,14 @@ const world3Level3 = makeLevel(
         block(2896, 198),
         block(3488, 262),
         block(3664, 166)
-
     ],
 
     3880
-
 );
-
-
-/* WORLD 3 - LEVEL 4 */
 
 const world3Level4 = makeLevel(
 
     [
-
         platform(0, 470, 16),
         platform(288, 390, 8),
         platform(464, 310, 8),
@@ -944,11 +747,9 @@ const world3Level4 = makeLevel(
         platform(3456, 342, 8),
         platform(3632, 230, 8),
         platform(3792, 470, 13)
-
     ],
 
     [
-
         enemy("cockroach", 330, 360),
         enemy("fly", 500, 190),
         enemy("cactus", 650, 198),
@@ -968,11 +769,9 @@ const world3Level4 = makeLevel(
         enemy("ghost", 3260, 300),
         enemy("cactus", 3470, 310),
         enemy("ghost", 3650, 166)
-
     ],
 
     [
-
         block(304, 342),
         block(480, 262),
         block(656, 182, "fire"),
@@ -981,61 +780,41 @@ const world3Level4 = makeLevel(
         block(1424, 302),
         block(1600, 198),
         block(1776, 94, "fire"),
-   block(1952, 198),
+        block(1952, 198),
         block(2544, 278),
         block(2720, 166),
         block(2896, 278, "fire"),
         block(3472, 294),
         block(3648, 182)
-
     ],
 
     3824
-
 );
-
-
-/* =========================================================
-   LEVEL TABLE
-========================================================= */
 
 const levels = {
 
     1: {
-
         1: world1Level1,
         2: world1Level2,
         3: world1Level3,
         4: world1Level4
-
     },
 
-
     2: {
-
         1: world2Level1,
         2: world2Level2,
         3: world2Level3,
         4: world2Level4
-
     },
 
-
     3: {
-
         1: world3Level1,
         2: world3Level2,
         3: world3Level3,
         4: world3Level4
-
     }
 
 };
-
-
-/* =========================================================
-   LEVEL FUNCTIONS
-========================================================= */
 
 export function getCurrentLevel() {
 
@@ -1047,7 +826,6 @@ export function getCurrentLevel() {
 
 }
 
-
 export function setLevel(
     world,
     level
@@ -1057,7 +835,6 @@ export function setLevel(
     currentLevel = level;
 
 }
-
 
 export function nextLevel() {
 
@@ -1071,20 +848,17 @@ export function nextLevel() {
 
     }
 
-
     if (
         currentWorld < 3
     ) {
 
         currentWorld++;
-
         currentLevel = 1;
 
         return true;
 
     }
 
-
     return false;
 
-        }
+           }
