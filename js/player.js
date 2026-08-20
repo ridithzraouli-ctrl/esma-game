@@ -1,26 +1,30 @@
-const NORMAL_WIDTH = 32;
-const NORMAL_HEIGHT = 48;
+const SMALL_WIDTH = 16;
+const SMALL_HEIGHT = 16;
 
-const BIG_WIDTH = 48;
-const BIG_HEIGHT = 64;
+const BIG_WIDTH = 16;
+const BIG_HEIGHT = 32;
 
 export const player = {
     x: 100,
     y: 400,
 
-    width: NORMAL_WIDTH,
-    height: NORMAL_HEIGHT,
+    width: SMALL_WIDTH,
+    height: SMALL_HEIGHT,
 
     velocityX: 0,
     velocityY: 0,
 
-    speed: 4.5,
-    jumpPower: 11,
+    speed: 3,
+    acceleration: 0.35,
+    friction: 0.3,
+
+    jumpPower: 9,
+    gravity: 0.5,
+    maxFallSpeed: 10,
 
     grounded: false,
 
     power: null,
-
     isBig: false,
 
     hasWings: false,
@@ -29,9 +33,6 @@ export const player = {
 
     jumpsUsed: 0
 };
-
-const gravity = 0.6;
-const maxFallSpeed = 14;
 
 
 export function resetPlayer(x = 100, y = 400) {
@@ -44,14 +45,23 @@ export function resetPlayer(x = 100, y = 400) {
 
     player.grounded = false;
 
-    player.jumpsUsed = 0;
+    player.power = null;
+    player.isBig = false;
 
+    player.hasWings = false;
+    player.hasDoubleJump = false;
+    player.hasFirePower = false;
+
+    player.width = SMALL_WIDTH;
+    player.height = SMALL_HEIGHT;
+
+    player.jumpsUsed = 0;
 }
 
 
 export function updatePlayer(keys, platforms) {
 
-    player.velocityX = 0;
+    let moving = false;
 
 
     if (
@@ -59,8 +69,10 @@ export function updatePlayer(keys, platforms) {
         keys["arrowleft"]
     ) {
 
-        player.velocityX = -player.speed;
+        player.velocityX -=
+            player.acceleration;
 
+        moving = true;
     }
 
 
@@ -69,7 +81,58 @@ export function updatePlayer(keys, platforms) {
         keys["arrowright"]
     ) {
 
-        player.velocityX = player.speed;
+        player.velocityX +=
+            player.acceleration;
+
+        moving = true;
+    }
+
+
+    if (!moving) {
+
+        if (player.velocityX > 0) {
+
+            player.velocityX -=
+                player.friction;
+
+            if (player.velocityX < 0) {
+                player.velocityX = 0;
+            }
+
+        }
+
+        else if (player.velocityX < 0) {
+
+            player.velocityX +=
+                player.friction;
+
+            if (player.velocityX > 0) {
+                player.velocityX = 0;
+            }
+
+        }
+
+    }
+
+
+    if (
+        player.velocityX >
+        player.speed
+    ) {
+
+        player.velocityX =
+            player.speed;
+
+    }
+
+
+    if (
+        player.velocityX <
+        -player.speed
+    ) {
+
+        player.velocityX =
+            -player.speed;
 
     }
 
@@ -77,21 +140,48 @@ export function updatePlayer(keys, platforms) {
     player.x += player.velocityX;
 
 
-    player.velocityY += gravity;
+    if (player.x < 0) {
+        player.x = 0;
+        player.velocityX = 0;
+    }
 
 
     if (
-        player.velocityY >
-        maxFallSpeed
+        player.hasWings &&
+        player.velocityY > 0 &&
+        keys[" "] 
     ) {
 
-        player.velocityY =
-            maxFallSpeed;
+        player.velocityY +=
+            player.gravity * 0.25;
+
+    }
+
+    else {
+
+        player.velocityY +=
+            player.gravity;
 
     }
 
 
-    player.y += player.velocityY;
+    if (
+        player.velocityY >
+        player.maxFallSpeed
+    ) {
+
+        player.velocityY =
+            player.maxFallSpeed;
+
+    }
+
+
+    const previousBottom =
+        player.y + player.height;
+
+
+    player.y +=
+        player.velocityY;
 
 
     player.grounded = false;
@@ -103,26 +193,28 @@ export function updatePlayer(keys, platforms) {
 
         const horizontal =
             player.x <
-                platform.x + platform.width &&
-            player.x + player.width >
+                platform.x +
+                platform.width &&
+            player.x +
+                player.width >
                 platform.x;
 
 
-        const falling =
-            player.velocityY >= 0;
+        const currentBottom =
+            player.y +
+            player.height;
 
 
         const landing =
-            player.y + player.height >=
+            previousBottom <=
                 platform.y &&
-            player.y + player.height <=
-                platform.y +
-                platform.height;
+            currentBottom >=
+                platform.y &&
+            player.velocityY >= 0;
 
 
         if (
             horizontal &&
-            falling &&
             landing
         ) {
 
@@ -136,24 +228,15 @@ export function updatePlayer(keys, platforms) {
 
             player.jumpsUsed = 0;
 
+            break;
         }
 
     }
 
 
     if (player.grounded) {
-
         player.jumpsUsed = 0;
-
     }
-
-
-    if (player.x < 0) {
-
-        player.x = 0;
-
-    }
-
 }
 
 
@@ -169,7 +252,6 @@ export function jump() {
         player.jumpsUsed = 1;
 
         return true;
-
     }
 
 
@@ -184,10 +266,8 @@ export function jump() {
         player.jumpsUsed++;
 
         return true;
-
     }
 
 
     return false;
-
 }
