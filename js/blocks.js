@@ -7,16 +7,13 @@ export function createBlock(x, y, content = null) {
         y,
         width: BLOCK_SIZE,
         height: BLOCK_SIZE,
-
         content,
         hit: false,
         released: false
     };
 }
 
-
 export function createBlocks(blockData) {
-
     return blockData.map(block =>
         createBlock(
             block.x,
@@ -24,102 +21,139 @@ export function createBlocks(blockData) {
             block.type || null
         )
     );
-
 }
 
-
-export function checkBlockCollision(player, block) {
-
+function overlaps(player, block) {
     return (
-        player.x <
-            block.x + block.width &&
-
-        player.x +
-            player.width >
-            block.x &&
-
-        player.y <
-            block.y + block.height &&
-
-        player.y +
-            player.height >
-            block.y
+        player.x < block.x + block.width &&
+        player.x + player.width > block.x &&
+        player.y < block.y + block.height &&
+        player.y + player.height > block.y
     );
-
 }
 
-
-export function hitBlock(player, block) {
-
-    if (block.hit) {
-        return null;
-    }
-
-
+function hitFromBelow(player, block) {
     const previousBottom =
         player.y +
         player.height -
         player.velocityY;
 
-
-    const hittingFromBelow =
+    return (
         player.velocityY < 0 &&
+        previousBottom <= block.y + block.height &&
+        player.y + player.height >= block.y
+    );
+}
 
-        previousBottom <=
-            block.y +
-
-            block.height &&
-
+function landOnTop(player, block) {
+    const previousBottom =
         player.y +
-            player.height >=
-            block.y;
+        player.height -
+        player.velocityY;
 
+    return (
+        player.velocityY >= 0 &&
+        previousBottom <= block.y &&
+        player.y + player.height >= block.y
+    );
+}
 
-    if (!hittingFromBelow) {
+function hitFromSide(player, block) {
+    const previousLeft =
+        player.x -
+        player.velocityX;
+
+    const previousRight =
+        player.x +
+        player.width -
+        player.velocityX;
+
+    const verticalOverlap =
+        player.y < block.y + block.height &&
+        player.y + player.height > block.y;
+
+    if (!verticalOverlap) {
+        return false;
+    }
+
+    return (
+        player.velocityX > 0 &&
+        previousRight <= block.x &&
+        player.x + player.width >= block.x
+    ) || (
+        player.velocityX < 0 &&
+        previousLeft >= block.x + block.width &&
+        player.x <= block.x + block.width
+    );
+}
+
+export function checkBlockCollision(player, block) {
+    return overlaps(player, block);
+}
+
+export function hitBlock(player, block) {
+    if (!overlaps(player, block)) {
         return null;
     }
 
+    if (hitFromBelow(player, block)) {
+        player.y =
+            block.y +
+            block.height;
 
-    block.hit = true;
+        player.velocityY = 0;
 
+        if (!block.hit) {
+            block.hit = true;
 
-    if (
-        block.content &&
-        !block.released
-    ) {
+            if (
+                block.content &&
+                !block.released
+            ) {
+                block.released = true;
+                return block.content;
+            }
+        }
 
-        block.released = true;
-
-        return block.content;
+        return null;
     }
 
+    if (landOnTop(player, block)) {
+        player.y =
+            block.y -
+            player.height;
+
+        player.velocityY = 0;
+        return null;
+    }
+
+    if (hitFromSide(player, block)) {
+        if (player.velocityX > 0) {
+            player.x =
+                block.x -
+                player.width;
+        } else {
+            player.x =
+                block.x +
+                block.width;
+        }
+
+        player.velocityX = 0;
+    }
 
     return null;
 }
-
 
 export function updateBlocks(
     player,
     blocks
 ) {
-
     const released = [];
 
-
-    for (
-        const block
-        of blocks
-    ) {
-
-        if (
-            !checkBlockCollision(
-                player,
-                block
-            )
-        ) {
+    for (const block of blocks) {
+        if (!overlaps(player, block)) {
             continue;
         }
-
 
         const item =
             hitBlock(
@@ -127,33 +161,21 @@ export function updateBlocks(
                 block
             );
 
-
         if (item) {
-
             released.push({
-
                 type: item,
-
                 x:
                     block.x +
-                    (
-                        block.width -
-                        BLOCK_SIZE
-                    ) / 2,
-
+                    (block.width - BLOCK_SIZE) / 2,
                 y:
                     block.y -
                     POP_DISTANCE
             });
-
         }
-
     }
-
 
     return released;
 }
-
 
 export function drawBlock(
     ctx,
@@ -161,49 +183,37 @@ export function drawBlock(
     cameraX = 0,
     cameraY = 0
 ) {
+    const x =
+        block.x - cameraX;
+
+    const y =
+        block.y - cameraY;
 
     ctx.fillStyle =
         block.hit
             ? "#8A8A8A"
             : "#FFD447";
 
-
     ctx.fillRect(
-
-        block.x -
-            cameraX,
-
-        block.y -
-            cameraY,
-
+        x,
+        y,
         block.width,
         block.height
-
     );
-
 
     ctx.strokeStyle =
         "#8A5A00";
 
     ctx.lineWidth = 1;
 
-
     ctx.strokeRect(
-
-        block.x -
-            cameraX,
-
-        block.y -
-            cameraY,
-
+        x,
+        y,
         block.width,
         block.height
-
     );
 
-
     if (!block.hit) {
-
         ctx.fillStyle =
             "#5A3A00";
 
@@ -216,21 +226,10 @@ export function drawBlock(
         ctx.textBaseline =
             "middle";
 
-
         ctx.fillText(
-
             "?",
-
-            block.x +
-                block.width / 2 -
-                cameraX,
-
-            block.y +
-                block.height / 2 -
-                cameraY
-
+            x + block.width / 2,
+            y + block.height / 2
         );
-
     }
-
 }
