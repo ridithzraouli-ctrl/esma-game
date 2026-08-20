@@ -137,16 +137,12 @@ export function updatePlayer(keys, platforms) {
     }
 
 
-    player.x +=
-        player.velocityX;
+    player.x += player.velocityX;
 
 
     if (player.x < 0) {
-
         player.x = 0;
-
         player.velocityX = 0;
-
     }
 
 
@@ -165,12 +161,8 @@ export function updatePlayer(keys, platforms) {
     }
 
 
-    const previousY =
-        player.y;
-
     const previousBottom =
-        player.y +
-        player.height;
+        player.y + player.height;
 
 
     player.y +=
@@ -181,15 +173,13 @@ export function updatePlayer(keys, platforms) {
 
 
     for (
-        const platform
-        of platforms
+        const platform of platforms
     ) {
 
         const horizontal =
             player.x <
                 platform.x +
                 platform.width &&
-
             player.x +
                 player.width >
                 platform.x;
@@ -203,10 +193,8 @@ export function updatePlayer(keys, platforms) {
         const landing =
             previousBottom <=
                 platform.y &&
-
             currentBottom >=
                 platform.y &&
-
             player.velocityY >= 0;
 
 
@@ -226,18 +214,14 @@ export function updatePlayer(keys, platforms) {
             player.jumpsUsed = 0;
 
             break;
-
         }
 
     }
 
 
     if (player.grounded) {
-
         player.jumpsUsed = 0;
-
     }
-
 }
 
 
@@ -253,12 +237,14 @@ export function jump() {
         player.jumpsUsed = 1;
 
         return true;
-
     }
 
 
     if (
-        player.hasDoubleJump &&
+        (
+            player.hasDoubleJump ||
+            player.hasWings
+        ) &&
         player.jumpsUsed < 2
     ) {
 
@@ -268,10 +254,8 @@ export function jump() {
         player.jumpsUsed++;
 
         return true;
-
     }
 
 
     return false;
-
-        }
+}
