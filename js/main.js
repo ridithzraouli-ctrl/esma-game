@@ -699,4 +699,483 @@ function drawPowerUp(powerUp) {
 
 
     let mainColor = "#FFFFFF";
-    let secondaryColor =
+    let secondaryColor = "#FFFFFF";
+
+
+    if (
+        powerUp.type ===
+        ITEM_TYPES.STRAWBERRY
+    ) {
+
+        mainColor = "#FF3B81";
+        secondaryColor = "#7ED957";
+
+    }
+
+    else if (
+        powerUp.type ===
+        ITEM_TYPES.WINGS
+    ) {
+
+        mainColor = "#F5F5F5";
+        secondaryColor = "#9DD9FF";
+
+    }
+
+    else if (
+        powerUp.type ===
+        ITEM_TYPES.BUNNY
+    ) {
+
+        mainColor = "#B66DFF";
+        secondaryColor = "#E3C4FF";
+
+    }
+
+    else if (
+        powerUp.type ===
+        ITEM_TYPES.FIRE
+    ) {
+
+        mainColor = "#FF6A00";
+        secondaryColor = "#FFD23F";
+
+    }
+
+
+    ctx.fillStyle = mainColor;
+
+    ctx.fillRect(
+        powerUp.x + 4,
+        powerUp.y + 4,
+        powerUp.width - 8,
+        powerUp.height - 8
+    );
+
+
+    ctx.fillStyle = secondaryColor;
+
+    ctx.fillRect(
+        powerUp.x + 10,
+        powerUp.y + 8,
+        8,
+        8
+    );
+
+
+    ctx.fillRect(
+        powerUp.x + 18,
+        powerUp.y + 16,
+        6,
+        6
+    );
+}
+
+
+function drawEnemy(enemy) {
+
+    if (!enemy.alive) {
+        return;
+    }
+
+
+    if (enemy.type === "beetle") {
+        ctx.fillStyle = "#174A24";
+    }
+
+    else if (enemy.type === "cockroach") {
+        ctx.fillStyle = "#7A3E18";
+    }
+
+    else if (enemy.type === "fly") {
+        ctx.fillStyle = "#FFD400";
+    }
+
+    else if (enemy.type === "spider") {
+        ctx.fillStyle = "#7138A6";
+    }
+
+    else if (enemy.type === "ghost") {
+        ctx.fillStyle = "#8DEBFF";
+    }
+
+    else if (enemy.type === "cactus") {
+        ctx.fillStyle = "#31A84A";
+    }
+
+    else {
+        ctx.fillStyle = "#FF00FF";
+    }
+
+
+    ctx.fillRect(
+        enemy.x,
+        enemy.y,
+        enemy.width,
+        enemy.height
+    );
+
+
+    ctx.fillStyle = "#000000";
+
+    const eyeSize = 4;
+
+    ctx.fillRect(
+        enemy.x + enemy.width * 0.25,
+        enemy.y + enemy.height * 0.25,
+        eyeSize,
+        eyeSize
+    );
+
+    ctx.fillRect(
+        enemy.x + enemy.width * 0.65,
+        enemy.y + enemy.height * 0.25,
+        eyeSize,
+        eyeSize
+    );
+}
+
+
+function drawPlayer() {
+
+    const x = player.x;
+    const y = player.y;
+
+    const width = player.width;
+    const height = player.height;
+
+
+    let mainColor = "#3D7EFF";
+    let accentColor = "#8DB1FF";
+
+
+    if (player.isBig) {
+
+        mainColor = "#FF3B81";
+        accentColor = "#FF9FC3";
+
+    }
+
+
+    if (player.power === "wings") {
+
+        mainColor = "#FFFFFF";
+        accentColor = "#9DD9FF";
+
+
+        ctx.fillStyle = "#9DD9FF";
+
+        ctx.fillRect(
+            x - 10,
+            y + 14,
+            10,
+            22
+        );
+
+        ctx.fillRect(
+            x + width,
+            y + 14,
+            10,
+            22
+        );
+    }
+
+
+    if (player.power === "bunny") {
+
+        mainColor = "#B66DFF";
+        accentColor = "#E3C4FF";
+
+
+        ctx.fillStyle = accentColor;
+
+        ctx.fillRect(
+            x + 7,
+            y - 12,
+            7,
+            16
+        );
+
+        ctx.fillRect(
+            x + width - 14,
+            y - 12,
+            7,
+            16
+        );
+    }
+
+
+    if (player.power === "fire") {
+
+        mainColor = "#FF6A00";
+        accentColor = "#FFD23F";
+    }
+
+
+    const headHeight =
+        Math.max(
+            12,
+            Math.floor(height * 0.30)
+        );
+
+
+    const bodyY =
+        y + headHeight;
+
+
+    ctx.fillStyle = mainColor;
+
+    ctx.fillRect(
+        x,
+        bodyY,
+        width,
+        height - headHeight
+    );
+
+
+    ctx.fillStyle = accentColor;
+
+    ctx.fillRect(
+        x + 4,
+        y + 3,
+        width - 8,
+        headHeight - 4
+    );
+
+
+    ctx.fillStyle = "#000000";
+
+
+    const eyeSize =
+        Math.max(
+            3,
+            Math.floor(width / 10)
+        );
+
+
+    ctx.fillRect(
+        x + width * 0.25,
+        y + headHeight * 0.35,
+        eyeSize,
+        eyeSize
+    );
+
+
+    ctx.fillRect(
+        x + width * 0.65,
+        y + headHeight * 0.35,
+        eyeSize,
+        eyeSize
+    );
+
+
+    if (player.power === "fire") {
+
+        ctx.fillStyle = "#FFD23F";
+
+        ctx.fillRect(
+            x + width / 2 - 5,
+            y - 6,
+            10,
+            7
+        );
+    }
+}
+
+
+function drawExit(exit) {
+
+    ctx.fillStyle = "#65D84A";
+
+    ctx.fillRect(
+        exit.x,
+        exit.y,
+        exit.width,
+        exit.height
+    );
+
+
+    ctx.fillStyle = "#FFFFFF";
+
+    ctx.fillRect(
+        exit.x + 8,
+        exit.y + 12,
+        exit.width - 16,
+        8
+    );
+
+    ctx.fillRect(
+        exit.x + 8,
+        exit.y + 28,
+        exit.width - 16,
+        8
+    );
+
+}
+
+
+function drawGame() {
+
+    ctx.fillStyle = "#87CEEB";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    const level =
+        getCurrentLevel();
+
+
+    ctx.save();
+
+
+    ctx.translate(
+        -camera.x,
+        -camera.y
+    );
+
+
+    for (
+        const platform
+        of level.platforms
+    ) {
+
+        drawPlatform(platform);
+
+    }
+
+
+    for (
+        const block
+        of blocks
+    ) {
+
+        drawBlock(
+            ctx,
+            block
+        );
+
+    }
+
+
+    drawExit(level.exit);
+
+
+    for (
+        const powerUp
+        of powerUps
+    ) {
+
+        drawPowerUp(powerUp);
+
+    }
+
+
+    for (
+        const enemy
+        of enemies
+    ) {
+
+        drawEnemy(enemy);
+
+    }
+
+
+    drawPlayer();
+
+
+    ctx.restore();
+
+
+    ctx.fillStyle = "#000000";
+
+    ctx.font = "18px Arial";
+
+    ctx.textAlign = "left";
+
+    ctx.fillText(
+        "WORLD " +
+        getWorldNumber() +
+        "  •  LEVEL " +
+        getLevelNumber(),
+        20,
+        30
+    );
+
+}
+
+
+function getWorldNumber() {
+
+    const level =
+        getCurrentLevel();
+
+    return level.world || "";
+}
+
+
+function getLevelNumber() {
+
+    return "";
+}
+
+
+function draw() {
+
+    if (
+        gameState ===
+        GAME_STATES.MENU
+    ) {
+
+        drawMenu();
+
+    }
+
+    else if (
+        gameState ===
+        GAME_STATES.HOW_TO_PLAY
+    ) {
+
+        drawHowToPlay();
+
+    }
+
+    else if (
+        gameState ===
+        GAME_STATES.SETTINGS
+    ) {
+
+        drawSettings();
+
+    }
+
+    else if (
+        gameState ===
+        GAME_STATES.PLAYING
+    ) {
+
+        drawGame();
+
+    }
+
+}
+
+
+function gameLoop() {
+
+    update();
+
+    draw();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+
+}
+
+
+gameLoop();
