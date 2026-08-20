@@ -1,12 +1,12 @@
-const BLOCK_WIDTH = 40;
-const BLOCK_HEIGHT = 40;
+const BLOCK_SIZE = 16;
+const POP_DISTANCE = 16;
 
 export function createBlock(x, y, content = null) {
     return {
         x,
         y,
-        width: BLOCK_WIDTH,
-        height: BLOCK_HEIGHT,
+        width: BLOCK_SIZE,
+        height: BLOCK_SIZE,
 
         content,
         hit: false,
@@ -14,7 +14,9 @@ export function createBlock(x, y, content = null) {
     };
 }
 
+
 export function createBlocks(blockData) {
+
     return blockData.map(block =>
         createBlock(
             block.x,
@@ -22,78 +24,136 @@ export function createBlocks(blockData) {
             block.type || null
         )
     );
+
 }
+
 
 export function checkBlockCollision(player, block) {
+
     return (
-        player.x < block.x + block.width &&
-        player.x + player.width > block.x &&
-        player.y < block.y + block.height &&
-        player.y + player.height > block.y
+        player.x <
+            block.x + block.width &&
+
+        player.x +
+            player.width >
+            block.x &&
+
+        player.y <
+            block.y + block.height &&
+
+        player.y +
+            player.height >
+            block.y
     );
+
 }
 
+
 export function hitBlock(player, block) {
+
     if (block.hit) {
         return null;
     }
 
+
+    const previousBottom =
+        player.y +
+        player.height -
+        player.velocityY;
+
+
     const hittingFromBelow =
         player.velocityY < 0 &&
-        player.y <= block.y + block.height &&
-        player.y + player.height > block.y;
+
+        previousBottom <=
+            block.y +
+
+            block.height &&
+
+        player.y +
+            player.height >=
+            block.y;
+
 
     if (!hittingFromBelow) {
         return null;
     }
 
+
     block.hit = true;
+
 
     if (
         block.content &&
         !block.released
     ) {
+
         block.released = true;
 
         return block.content;
     }
 
+
     return null;
 }
+
 
 export function updateBlocks(
     player,
     blocks
 ) {
+
     const released = [];
 
-    for (const block of blocks) {
+
+    for (
+        const block
+        of blocks
+    ) {
 
         if (
-            checkBlockCollision(
+            !checkBlockCollision(
                 player,
                 block
             )
         ) {
-
-            const item =
-                hitBlock(
-                    player,
-                    block
-                );
-
-            if (item) {
-                released.push({
-                    type: item,
-                    x: block.x,
-                    y: block.y - 40
-                });
-            }
+            continue;
         }
+
+
+        const item =
+            hitBlock(
+                player,
+                block
+            );
+
+
+        if (item) {
+
+            released.push({
+
+                type: item,
+
+                x:
+                    block.x +
+                    (
+                        block.width -
+                        BLOCK_SIZE
+                    ) / 2,
+
+                y:
+                    block.y -
+                    POP_DISTANCE
+            });
+
+        }
+
     }
+
 
     return released;
 }
+
 
 export function drawBlock(
     ctx,
@@ -101,35 +161,76 @@ export function drawBlock(
     cameraX = 0,
     cameraY = 0
 ) {
+
     ctx.fillStyle =
         block.hit
-            ? "#777777"
-            : "#FFD54A";
+            ? "#8A8A8A"
+            : "#FFD447";
+
 
     ctx.fillRect(
-        block.x - cameraX,
-        block.y - cameraY,
+
+        block.x -
+            cameraX,
+
+        block.y -
+            cameraY,
+
         block.width,
         block.height
+
     );
+
+
+    ctx.strokeStyle =
+        "#8A5A00";
+
+    ctx.lineWidth = 1;
+
+
+    ctx.strokeRect(
+
+        block.x -
+            cameraX,
+
+        block.y -
+            cameraY,
+
+        block.width,
+        block.height
+
+    );
+
 
     if (!block.hit) {
 
-        ctx.fillStyle = "#000000";
+        ctx.fillStyle =
+            "#5A3A00";
 
-        ctx.font = "24px Arial";
+        ctx.font =
+            "bold 13px Arial";
 
-        ctx.textAlign = "center";
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
 
         ctx.fillText(
+
             "?",
+
             block.x +
                 block.width / 2 -
                 cameraX,
 
             block.y +
-                block.height * 0.72 -
+                block.height / 2 -
                 cameraY
+
         );
+
     }
+
 }
