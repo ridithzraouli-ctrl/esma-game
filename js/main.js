@@ -205,48 +205,67 @@ document.addEventListener(
 function createEnemyFromData(data) {
 
     if (data.type === "beetle") {
+
         return createBeetle(
             data.x,
             data.y
         );
+
     }
 
+
     if (data.type === "cockroach") {
+
         return createCockroach(
             data.x,
             data.y
         );
+
     }
 
+
     if (data.type === "fly") {
+
         return createFly(
             data.x,
             data.y
         );
+
     }
 
+
     if (data.type === "spider") {
+
         return createSpider(
             data.x,
             data.y
         );
+
     }
 
+
     if (data.type === "ghost") {
+
         return createGhost(
             data.x,
             data.y
         );
+
     }
 
+
     if (data.type === "cactus") {
+
         return createCactus(
             data.x,
             data.y
         );
+
     }
 
+
     return null;
+
 }
 
 
@@ -257,6 +276,7 @@ function loadLevelObjects() {
 
 
     enemies = [];
+
     powerUps = [];
 
 
@@ -276,8 +296,13 @@ function loadLevelObjects() {
                 enemyData
             );
 
+
         if (enemy) {
-            enemies.push(enemy);
+
+            enemies.push(
+                enemy
+            );
+
         }
 
     }
@@ -311,15 +336,21 @@ function switchWorld(direction) {
     let world =
         getSelectedWorld();
 
+
     world += direction;
 
 
     if (world < 1) {
+
         world = 3;
+
     }
 
+
     if (world > 3) {
+
         world = 1;
+
     }
 
 
@@ -327,7 +358,9 @@ function switchWorld(direction) {
         isWorldUnlocked(world)
     ) {
 
-        setSelectedWorld(world);
+        setSelectedWorld(
+            world
+        );
 
         updateMapCharacter();
 
@@ -341,15 +374,19 @@ function updateMapCharacter() {
     const map =
         getWorldMap();
 
+
     const level =
         getSelectedLevel();
+
 
     const node =
         map.nodes[level - 1];
 
 
     if (!node) {
+
         return;
+
     }
 
 
@@ -380,6 +417,7 @@ function openSelectedLevel() {
 
     const world =
         getSelectedWorld();
+
 
     const level =
         getSelectedLevel();
@@ -419,6 +457,7 @@ function updateWorldMap() {
         mapTarget.x -
         mapCharacter.x;
 
+
     const dy =
         mapTarget.y -
         mapCharacter.y;
@@ -455,17 +494,25 @@ canvas.addEventListener(
 
 
         const mouseX =
-            (event.clientX -
-                rect.left) *
-            (canvas.width /
-                rect.width);
+            (
+                event.clientX -
+                rect.left
+            ) *
+            (
+                canvas.width /
+                rect.width
+            );
 
 
         const mouseY =
-            (event.clientY -
-                rect.top) *
-            (canvas.height /
-                rect.height);
+            (
+                event.clientY -
+                rect.top
+            ) *
+            (
+                canvas.height /
+                rect.height
+            );
 
 
         if (
@@ -647,6 +694,7 @@ function handleWorldMapClick(
         const node =
             map.nodes[i];
 
+
         const level =
             i + 1;
 
@@ -670,13 +718,16 @@ function handleWorldMapClick(
                 level
             );
 
+
             mapTarget.x =
                 node.x;
 
             mapTarget.y =
                 node.y;
 
+
             openSelectedLevel();
+
 
             return;
 
@@ -684,10 +735,7 @@ function handleWorldMapClick(
 
     }
 
-}
-
-
-function update() {
+}function update() {
 
     if (
         gameState ===
@@ -799,7 +847,9 @@ function update() {
     ) {
 
         if (!enemy.alive) {
+
             continue;
+
         }
 
 
@@ -825,6 +875,7 @@ function update() {
             defeatEnemy(
                 enemy
             );
+
 
             player.velocityY =
                 -7;
@@ -855,15 +906,19 @@ function update() {
 
     const reachedExit =
         player.x <
-            exit.x + exit.width &&
+            exit.x +
+            exit.width &&
 
-        player.x + player.width >
+        player.x +
+            player.width >
             exit.x &&
 
         player.y <
-            exit.y + exit.height &&
+            exit.y +
+            exit.height &&
 
-        player.y + player.height >
+        player.y +
+            player.height >
             exit.y;
 
 
@@ -871,6 +926,7 @@ function update() {
 
         const world =
             getSelectedWorld();
+
 
         const currentLevel =
             getSelectedLevel();
@@ -918,6 +974,7 @@ function drawGame() {
     ctx.fillStyle =
         "#87CEEB";
 
+
     ctx.fillRect(
         0,
         0,
@@ -947,6 +1004,7 @@ function drawGame() {
         ctx.fillStyle =
             "#8B5A2B";
 
+
         ctx.fillRect(
             platform.x,
             platform.y,
@@ -964,9 +1022,7 @@ function drawGame() {
 
         drawBlock(
             ctx,
-            block,
-            camera.x,
-            camera.y
+            block
         );
 
     }
@@ -974,6 +1030,7 @@ function drawGame() {
 
     ctx.fillStyle =
         "#00FF00";
+
 
     ctx.fillRect(
         level.exit.x,
@@ -1054,17 +1111,26 @@ function drawGame() {
     ) {
 
         if (!enemy.alive) {
+
             continue;
+
         }
 
 
         const colors = {
+
             beetle: "#174A24",
+
             cockroach: "#7A3E18",
+
             fly: "#FFD400",
+
             spider: "#7138A6",
+
             ghost: "#8DEBFF",
+
             cactus: "#31A84A"
+
         };
 
 
@@ -1162,8 +1228,10 @@ function drawGame() {
     ctx.fillStyle =
         "#FFFFFF";
 
+
     ctx.font =
         "bold 20px Arial";
+
 
     ctx.textAlign =
         "left";
@@ -1209,7 +1277,9 @@ function draw() {
         GAME_STATES.MENU
     ) {
 
-        drawMainMenu(ctx);
+        drawMainMenu(
+            ctx
+        );
 
     }
 
@@ -1229,7 +1299,9 @@ function draw() {
         GAME_STATES.HOW_TO_PLAY
     ) {
 
-        drawHowToPlayScreen(ctx);
+        drawHowToPlayScreen(
+            ctx
+        );
 
     }
 
@@ -1239,7 +1311,9 @@ function draw() {
         GAME_STATES.SETTINGS
     ) {
 
-        drawSettingsScreen(ctx);
+        drawSettingsScreen(
+            ctx
+        );
 
     }
 
