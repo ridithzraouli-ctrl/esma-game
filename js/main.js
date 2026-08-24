@@ -2,7 +2,8 @@ import {
     player,
     updatePlayer,
     jump,
-    resetPlayer
+    resetPlayer,
+    damagePlayer
 } from "./player.js";
 
 import {
@@ -48,12 +49,9 @@ import {
     GAME_STATES,
     gameState,
     setGameState,
-    musicEnabled,
-    soundEnabled,
     toggleMusic,
     toggleSound,
     isInsideButton,
-    drawButton,
     drawMainMenu,
     drawHowToPlayScreen,
     drawSettingsScreen
@@ -276,7 +274,6 @@ function loadLevelObjects() {
 
 
     enemies = [];
-
     powerUps = [];
 
 
@@ -310,7 +307,9 @@ function loadLevelObjects() {
 }
 
 
-function resetCurrentLevel() {
+function resetCurrentLevel(
+    keepPower = false
+) {
 
     const level =
         getCurrentLevel();
@@ -318,7 +317,8 @@ function resetCurrentLevel() {
 
     resetPlayer(
         level.spawn.x,
-        level.spawn.y
+        level.spawn.y,
+        keepPower
     );
 
 
@@ -441,7 +441,9 @@ function openSelectedLevel() {
     );
 
 
-    resetCurrentLevel();
+    resetCurrentLevel(
+        true
+    );
 
 
     setGameState(
@@ -735,7 +737,10 @@ function handleWorldMapClick(
 
     }
 
-}function update() {
+}
+
+
+function update() {
 
     if (
         gameState ===
@@ -765,7 +770,8 @@ function handleWorldMapClick(
 
     updatePlayer(
         keys,
-        level.platforms
+        level.platforms,
+        blocks
     );
 
 
@@ -884,9 +890,22 @@ function handleWorldMapClick(
 
         else {
 
-            resetCurrentLevel();
+            const damageResult =
+                damagePlayer();
 
-            return;
+
+            if (
+                damageResult ===
+                "dead"
+            ) {
+
+                resetCurrentLevel(
+                    false
+                );
+
+                return;
+
+            }
 
         }
 
@@ -940,7 +959,9 @@ function handleWorldMapClick(
 
         if (nextLevel()) {
 
-            resetCurrentLevel();
+            resetCurrentLevel(
+                true
+            );
 
         }
 
@@ -962,14 +983,13 @@ function handleWorldMapClick(
         canvas.height + 300
     ) {
 
-        resetCurrentLevel();
+        resetCurrentLevel(
+            false
+        );
 
     }
 
-}
-
-
-function drawGame() {
+        }function drawGame() {
 
     ctx.fillStyle =
         "#87CEEB";
@@ -1214,12 +1234,16 @@ function drawGame() {
     }
 
 
-    ctx.fillRect(
-        player.x,
-        player.y,
-        player.width,
-        player.height
-    );
+    if (!player.damageFlash) {
+
+        ctx.fillRect(
+            player.x,
+            player.y,
+            player.width,
+            player.height
+        );
+
+    }
 
 
     ctx.restore();
