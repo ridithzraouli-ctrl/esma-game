@@ -4,6 +4,8 @@ const SMALL_HEIGHT = 16;
 const BIG_WIDTH = 16;
 const BIG_HEIGHT = 32;
 
+const INVINCIBILITY_TIME = 1000;
+
 
 export const player = {
 
@@ -33,15 +35,25 @@ export const player = {
     hasDoubleJump: false,
     hasFirePower: false,
 
-    jumpsUsed: 0
+    jumpsUsed: 0,
 
+    invincibleUntil: 0,
+    damageFlash: false
 };
 
 
 export function resetPlayer(
     x = 100,
-    y = 400
+    y = 400,
+    keepPower = false
 ) {
+
+    const oldPower = player.power;
+    const oldBig = player.isBig;
+
+    const oldWings = player.hasWings;
+    const oldDoubleJump = player.hasDoubleJump;
+    const oldFirePower = player.hasFirePower;
 
     player.x = x;
     player.y = y;
@@ -51,25 +63,126 @@ export function resetPlayer(
 
     player.grounded = false;
 
-    player.power = null;
-    player.isBig = false;
-
-    player.hasWings = false;
-    player.hasDoubleJump = false;
-    player.hasFirePower = false;
-
-    player.width = SMALL_WIDTH;
-    player.height = SMALL_HEIGHT;
-
     player.jumpsUsed = 0;
+
+    player.invincibleUntil = 0;
+    player.damageFlash = false;
+
+    if (keepPower) {
+
+        player.power = oldPower;
+        player.isBig = oldBig;
+
+        player.hasWings = oldWings;
+        player.hasDoubleJump = oldDoubleJump;
+        player.hasFirePower = oldFirePower;
+
+        if (player.isBig) {
+
+            player.width = BIG_WIDTH;
+            player.height = BIG_HEIGHT;
+
+        }
+        else {
+
+            player.width = SMALL_WIDTH;
+            player.height = SMALL_HEIGHT;
+
+        }
+
+    }
+    else {
+
+        player.power = null;
+        player.isBig = false;
+
+        player.hasWings = false;
+        player.hasDoubleJump = false;
+        player.hasFirePower = false;
+
+        player.width = SMALL_WIDTH;
+        player.height = SMALL_HEIGHT;
+
+    }
 
 }
 
 
-/*
-    Checks whether the player is horizontally
-    touching an object.
-*/
+export function isInvincible() {
+
+    return Date.now() <
+        player.invincibleUntil;
+
+}
+
+
+export function updateInvincibility() {
+
+    if (!isInvincible()) {
+
+        player.damageFlash = false;
+
+        return;
+
+    }
+
+    player.damageFlash =
+        Math.floor(
+            Date.now() / 100
+        ) % 2 === 0;
+
+}
+
+
+export function damagePlayer() {
+
+    if (isInvincible()) {
+        return "invincible";
+    }
+
+
+    player.invincibleUntil =
+        Date.now() +
+        INVINCIBILITY_TIME;
+
+
+    player.velocityY = -5;
+
+
+    if (player.power !== null) {
+
+        player.power = null;
+
+        player.hasWings = false;
+        player.hasDoubleJump = false;
+        player.hasFirePower = false;
+
+        player.isBig = true;
+
+        player.width = BIG_WIDTH;
+        player.height = BIG_HEIGHT;
+
+        return "power";
+
+    }
+
+
+    if (player.isBig) {
+
+        player.isBig = false;
+
+        player.width = SMALL_WIDTH;
+        player.height = SMALL_HEIGHT;
+
+        return "big";
+
+    }
+
+
+    return "dead";
+
+}
+
 
 function horizontalCollision(
     player,
@@ -88,11 +201,6 @@ function horizontalCollision(
 
 }
 
-
-/*
-    Checks whether the player is landing
-    ON TOP of an object.
-*/
 
 function landingCollision(
     player,
@@ -121,11 +229,6 @@ function landingCollision(
 
 }
 
-
-/*
-    Checks whether the player is hitting
-    the BOTTOM of an object.
-*/
 
 function bottomCollision(
     player,
@@ -162,12 +265,10 @@ export function updatePlayer(
     blocks = []
 ) {
 
+    updateInvincibility();
+
     let moving = false;
 
-
-    /* =========================
-       HORIZONTAL MOVEMENT
-    ========================= */
 
     if (
         keys["a"] ||
@@ -256,14 +357,6 @@ export function updatePlayer(
     }
 
 
-    /*
-        Move horizontally.
-
-        IMPORTANT:
-        Blocks are NOT moved here.
-        They stay at their world coordinates.
-    */
-
     player.x +=
         player.velocityX;
 
@@ -277,10 +370,6 @@ export function updatePlayer(
 
     }
 
-
-    /* =========================
-       GRAVITY
-    ========================= */
 
     player.velocityY +=
         player.gravity;
@@ -297,10 +386,6 @@ export function updatePlayer(
     }
 
 
-    /* =========================
-       VERTICAL MOVEMENT
-    ========================= */
-
     const previousTop =
         player.y;
 
@@ -315,10 +400,6 @@ export function updatePlayer(
 
     player.grounded = false;
 
-
-    /* =========================
-       PLATFORM COLLISION
-    ========================= */
 
     for (
         const platform of platforms
@@ -349,17 +430,9 @@ export function updatePlayer(
     }
 
 
-    /* =========================
-       BLOCK COLLISION
-    ========================= */
-
     for (
         const block of blocks
     ) {
-
-        /*
-            Landing ON TOP of a block.
-        */
 
         if (
             landingCollision(
@@ -383,13 +456,6 @@ export function updatePlayer(
 
         }
 
-
-        /*
-            Hitting the BOTTOM of a block.
-
-            This stops the player from passing
-            straight through the ? block.
-        */
 
         if (
             bottomCollision(
@@ -425,10 +491,6 @@ export function updatePlayer(
 
 export function jump() {
 
-    /*
-        Normal jump.
-    */
-
     if (
         player.grounded
     ) {
@@ -444,11 +506,6 @@ export function jump() {
 
     }
 
-
-    /*
-        Bunny / Wings:
-        second jump in mid-air.
-    */
 
     if (
         (
@@ -471,4 +528,4 @@ export function jump() {
 
     return false;
 
-        }
+}
