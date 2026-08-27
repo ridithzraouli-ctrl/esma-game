@@ -80,7 +80,6 @@ const canvas =
 const ctx =
     canvas.getContext("2d");
 
-
 canvas.width = 960;
 canvas.height = 540;
 
@@ -88,7 +87,6 @@ ctx.imageSmoothingEnabled = false;
 
 
 const keys = {};
-
 
 let enemies = [];
 let powerUps = [];
@@ -100,12 +98,15 @@ let mapCharacter = {
     y: 390
 };
 
-
 let mapTarget = {
     x: 150,
     y: 390
 };
 
+
+/* =========================
+   KEYBOARD
+========================= */
 
 document.addEventListener(
     "keydown",
@@ -200,78 +201,48 @@ document.addEventListener(
 );
 
 
+/* =========================
+   ENEMIES
+========================= */
+
 function createEnemyFromData(data) {
 
     if (data.type === "beetle") {
-
-        return createBeetle(
-            data.x,
-            data.y
-        );
-
+        return createBeetle(data.x, data.y);
     }
-
 
     if (data.type === "cockroach") {
-
-        return createCockroach(
-            data.x,
-            data.y
-        );
-
+        return createCockroach(data.x, data.y);
     }
-
 
     if (data.type === "fly") {
-
-        return createFly(
-            data.x,
-            data.y
-        );
-
+        return createFly(data.x, data.y);
     }
-
 
     if (data.type === "spider") {
-
-        return createSpider(
-            data.x,
-            data.y
-        );
-
+        return createSpider(data.x, data.y);
     }
-
 
     if (data.type === "ghost") {
-
-        return createGhost(
-            data.x,
-            data.y
-        );
-
+        return createGhost(data.x, data.y);
     }
-
 
     if (data.type === "cactus") {
-
-        return createCactus(
-            data.x,
-            data.y
-        );
-
+        return createCactus(data.x, data.y);
     }
 
-
     return null;
-
 }
 
+
+/* =========================
+   LOAD LEVEL
+========================= */
 
 function loadLevelObjects() {
 
     const level =
         getCurrentLevel();
-
 
     enemies = [];
     powerUps = [];
@@ -293,19 +264,18 @@ function loadLevelObjects() {
                 enemyData
             );
 
-
         if (enemy) {
-
-            enemies.push(
-                enemy
-            );
-
+            enemies.push(enemy);
         }
 
     }
 
 }
 
+
+/* =========================
+   RESET LEVEL
+========================= */
 
 function resetCurrentLevel(
     keepPower = false
@@ -331,26 +301,24 @@ function resetCurrentLevel(
 }
 
 
+/* =========================
+   WORLD MAP
+========================= */
+
 function switchWorld(direction) {
 
     let world =
         getSelectedWorld();
 
-
     world += direction;
 
 
     if (world < 1) {
-
         world = 3;
-
     }
 
-
     if (world > 3) {
-
         world = 1;
-
     }
 
 
@@ -358,9 +326,7 @@ function switchWorld(direction) {
         isWorldUnlocked(world)
     ) {
 
-        setSelectedWorld(
-            world
-        );
+        setSelectedWorld(world);
 
         updateMapCharacter();
 
@@ -374,19 +340,15 @@ function updateMapCharacter() {
     const map =
         getWorldMap();
 
-
     const level =
         getSelectedLevel();
-
 
     const node =
         map.nodes[level - 1];
 
 
     if (!node) {
-
         return;
-
     }
 
 
@@ -418,7 +380,6 @@ function openSelectedLevel() {
     const world =
         getSelectedWorld();
 
-
     const level =
         getSelectedLevel();
 
@@ -441,9 +402,7 @@ function openSelectedLevel() {
     );
 
 
-    resetCurrentLevel(
-        true
-    );
+    resetCurrentLevel(true);
 
 
     setGameState(
@@ -458,7 +417,6 @@ function updateWorldMap() {
     const dx =
         mapTarget.x -
         mapCharacter.x;
-
 
     const dy =
         mapTarget.y -
@@ -486,6 +444,10 @@ function updateWorldMap() {
 
 }
 
+
+/* =========================
+   MOUSE
+========================= */
 
 canvas.addEventListener(
     "click",
@@ -696,7 +658,6 @@ function handleWorldMapClick(
         const node =
             map.nodes[i];
 
-
         const level =
             i + 1;
 
@@ -730,7 +691,6 @@ function handleWorldMapClick(
 
             openSelectedLevel();
 
-
             return;
 
         }
@@ -739,6 +699,10 @@ function handleWorldMapClick(
 
 }
 
+
+/* =========================
+   GAME UPDATE
+========================= */
 
 function update() {
 
@@ -768,25 +732,18 @@ function update() {
         getCurrentLevel();
 
 
-    updatePlayer(
-        keys,
-        level.platforms,
-        blocks
-    );
+    /*
+        IMPORTANT:
 
+        Blocks are updated BEFORE the player.
 
-    for (
-        const enemy
-        of enemies
-    ) {
+        This lets hitBlock() see the player's
+        upward velocity before updatePlayer()
+        stops it against the block.
 
-        updateEnemy(
-            enemy,
-            level.platforms
-        );
-
-    }
-
+        This is what makes ? blocks actually
+        release their items.
+    */
 
     const releasedItems =
         updateBlocks(
@@ -819,6 +776,13 @@ function update() {
     }
 
 
+    updatePlayer(
+        keys,
+        level.platforms,
+        blocks
+    );
+
+
     updatePowerUps(
         powerUps,
         level.platforms
@@ -847,15 +811,30 @@ function update() {
     }
 
 
+    /* =========================
+       ENEMIES
+    ========================= */
+
+    for (
+        const enemy
+        of enemies
+    ) {
+
+        updateEnemy(
+            enemy,
+            level.platforms
+        );
+
+    }
+
+
     for (
         const enemy
         of enemies
     ) {
 
         if (!enemy.alive) {
-
             continue;
-
         }
 
 
@@ -890,13 +869,19 @@ function update() {
 
         else {
 
+            /*
+                FIX:
+                damagePlayer() requires
+                the actual player object.
+            */
+
             const damageResult =
-                damagePlayer(player);
+                damagePlayer(
+                    player
+                );
 
 
             if (
-                damageResult ===
-                "dead" ||
                 damageResult === true
             ) {
 
@@ -919,6 +904,10 @@ function update() {
         WORLD_WIDTH
     );
 
+
+    /* =========================
+       EXIT
+    ========================= */
 
     const exit =
         level.exit;
@@ -947,7 +936,6 @@ function update() {
         const world =
             getSelectedWorld();
 
-
         const currentLevel =
             getSelectedLevel();
 
@@ -960,9 +948,7 @@ function update() {
 
         if (nextLevel()) {
 
-            resetCurrentLevel(
-                true
-            );
+            resetCurrentLevel(true);
 
         }
 
@@ -979,19 +965,25 @@ function update() {
     }
 
 
+    /* =========================
+       FALL DEATH
+    ========================= */
+
     if (
         player.y >
         canvas.height + 300
     ) {
 
-        resetCurrentLevel(
-            false
-        );
+        resetCurrentLevel(false);
 
     }
 
 }
 
+
+/* =========================
+   DRAW GAME
+========================= */
 
 function drawGame() {
 
@@ -1020,6 +1012,10 @@ function drawGame() {
     );
 
 
+    /* =========================
+       PLATFORMS
+    ========================= */
+
     for (
         const platform
         of level.platforms
@@ -1039,6 +1035,10 @@ function drawGame() {
     }
 
 
+    /* =========================
+       BLOCKS
+    ========================= */
+
     for (
         const block
         of blocks
@@ -1052,6 +1052,10 @@ function drawGame() {
     }
 
 
+    /* =========================
+       EXIT
+    ========================= */
+
     ctx.fillStyle =
         "#00FF00";
 
@@ -1063,6 +1067,10 @@ function drawGame() {
         level.exit.height
     );
 
+
+    /* =========================
+       POWER UPS
+    ========================= */
 
     for (
         const powerUp
@@ -1129,30 +1137,27 @@ function drawGame() {
     }
 
 
+    /* =========================
+       ENEMIES
+    ========================= */
+
     for (
         const enemy
         of enemies
     ) {
 
         if (!enemy.alive) {
-
             continue;
-
         }
 
 
         const colors = {
 
             beetle: "#174A24",
-
             cockroach: "#7A3E18",
-
             fly: "#FFD400",
-
             spider: "#7138A6",
-
             ghost: "#8DEBFF",
-
             cactus: "#31A84A"
 
         };
@@ -1172,6 +1177,10 @@ function drawGame() {
 
     }
 
+
+    /* =========================
+       WINGS
+    ========================= */
 
     if (
         player.power ===
@@ -1200,6 +1209,10 @@ function drawGame() {
 
     }
 
+
+    /* =========================
+       PLAYER
+    ========================= */
 
     if (
         player.power ===
@@ -1253,6 +1266,10 @@ function drawGame() {
     ctx.restore();
 
 
+    /* =========================
+       HUD
+    ========================= */
+
     ctx.fillStyle =
         "#FFFFFF";
 
@@ -1288,6 +1305,10 @@ function drawGame() {
 }
 
 
+/* =========================
+   WORLD MAP
+========================= */
+
 function drawWorldMapScreen() {
 
     drawWorldMap(
@@ -1298,6 +1319,10 @@ function drawWorldMapScreen() {
 }
 
 
+/* =========================
+   DRAW
+========================= */
+
 function draw() {
 
     if (
@@ -1305,12 +1330,9 @@ function draw() {
         GAME_STATES.MENU
     ) {
 
-        drawMainMenu(
-            ctx
-        );
+        drawMainMenu(ctx);
 
     }
-
 
     else if (
         gameState ===
@@ -1321,30 +1343,23 @@ function draw() {
 
     }
 
-
     else if (
         gameState ===
         GAME_STATES.HOW_TO_PLAY
     ) {
 
-        drawHowToPlayScreen(
-            ctx
-        );
+        drawHowToPlayScreen(ctx);
 
     }
-
 
     else if (
         gameState ===
         GAME_STATES.SETTINGS
     ) {
 
-        drawSettingsScreen(
-            ctx
-        );
+        drawSettingsScreen(ctx);
 
     }
-
 
     else if (
         gameState ===
@@ -1357,6 +1372,10 @@ function draw() {
 
 }
 
+
+/* =========================
+   GAME LOOP
+========================= */
 
 function gameLoop() {
 
