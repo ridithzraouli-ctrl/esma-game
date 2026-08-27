@@ -12,6 +12,8 @@ export const player = {
     x: 100,
     y: 400,
 
+    previousY: 400,
+
     width: SMALL_WIDTH,
     height: SMALL_HEIGHT,
 
@@ -57,6 +59,7 @@ export function resetPlayer(
 
     player.x = x;
     player.y = y;
+    player.previousY = y;
 
     player.velocityX = 0;
     player.velocityY = 0;
@@ -267,6 +270,14 @@ export function updatePlayer(
 
     updateInvincibility();
 
+    /*
+        Save the player's position
+        BEFORE moving this frame.
+    */
+
+    player.previousY =
+        player.y;
+
     let moving = false;
 
 
@@ -435,6 +446,15 @@ export function updatePlayer(
     ) {
 
         if (
+            block.broken
+        ) {
+
+            continue;
+
+        }
+
+
+        if (
             landingCollision(
                 player,
                 block,
@@ -528,4 +548,4 @@ export function jump() {
 
     return false;
 
-}
+        }
