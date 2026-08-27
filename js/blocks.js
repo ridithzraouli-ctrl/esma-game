@@ -2,10 +2,6 @@ const BLOCK_SIZE = 16;
 const POP_DISTANCE = 16;
 
 
-/* =========================
-   CREATE BLOCK
-========================= */
-
 export function createBlock(
     x,
     y,
@@ -23,16 +19,13 @@ export function createBlock(
         content,
 
         hit: false,
-        released: false
+        released: false,
+        broken: false
 
     };
 
 }
 
-
-/* =========================
-   CREATE BLOCKS
-========================= */
 
 export function createBlocks(
     blockData
@@ -50,14 +43,14 @@ export function createBlocks(
 }
 
 
-/* =========================
-   COLLISION
-========================= */
-
 export function checkBlockCollision(
     player,
     block
 ) {
+
+    if (block.broken) {
+        return false;
+    }
 
     return (
 
@@ -82,29 +75,20 @@ export function checkBlockCollision(
 }
 
 
-/* =========================
-   HIT BLOCK
-========================= */
-
 export function hitBlock(
     player,
     block
 ) {
 
-    if (block.hit) {
+    if (
+        block.hit ||
+        block.broken
+    ) {
+
         return null;
+
     }
 
-
-    /*
-        The player is moving upward.
-
-        We check where the player's bottom
-        was during the previous frame.
-
-        This makes sure the block is actually
-        being hit from underneath.
-    */
 
     const previousBottom =
         player.y +
@@ -130,11 +114,6 @@ export function hitBlock(
     }
 
 
-    /*
-        STOP THE PLAYER FROM GOING
-        THROUGH THE BLOCK.
-    */
-
     player.y =
         block.y +
         block.height;
@@ -143,17 +122,26 @@ export function hitBlock(
     player.velocityY = 0;
 
 
-    /*
-        The block has now been hit.
-    */
+    if (
+        block.content ===
+        "BRICK"
+    ) {
+
+        if (
+            player.isBig
+        ) {
+
+            block.broken = true;
+
+        }
+
+        return null;
+
+    }
+
 
     block.hit = true;
 
-
-    /*
-        Release the power-up if
-        this block contains one.
-    */
 
     if (
         block.content &&
@@ -161,7 +149,6 @@ export function hitBlock(
     ) {
 
         block.released = true;
-
 
         return block.content;
 
@@ -172,10 +159,6 @@ export function hitBlock(
 
 }
 
-
-/* =========================
-   UPDATE BLOCKS
-========================= */
 
 export function updateBlocks(
     player,
@@ -189,11 +172,6 @@ export function updateBlocks(
         const block
         of blocks
     ) {
-
-        /*
-            Only process blocks that
-            are currently touching the player.
-        */
 
         if (
             !checkBlockCollision(
@@ -213,10 +191,6 @@ export function updateBlocks(
                 block
             );
 
-
-        /*
-            A power-up was released.
-        */
 
         if (item) {
 
@@ -247,16 +221,17 @@ export function updateBlocks(
 }
 
 
-/* =========================
-   DRAW BLOCK
-========================= */
-
 export function drawBlock(
     ctx,
     block,
     cameraX = 0,
     cameraY = 0
 ) {
+
+    if (block.broken) {
+        return;
+    }
+
 
     const x =
         block.x -
@@ -267,9 +242,86 @@ export function drawBlock(
         cameraY;
 
 
-    /*
-        Used blocks become gray.
-    */
+    if (
+        block.content ===
+        "BRICK"
+    ) {
+
+        ctx.fillStyle =
+            "#A85D32";
+
+        ctx.fillRect(
+            x,
+            y,
+            block.width,
+            block.height
+        );
+
+
+        ctx.strokeStyle =
+            "#67351F";
+
+        ctx.lineWidth = 1;
+
+        ctx.strokeRect(
+            x,
+            y,
+            block.width,
+            block.height
+        );
+
+
+        ctx.strokeStyle =
+            "#7D4326";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            y + 8
+        );
+
+        ctx.lineTo(
+            x + 16,
+            y + 8
+        );
+
+        ctx.moveTo(
+            x + 8,
+            y
+        );
+
+        ctx.lineTo(
+            x + 8,
+            y + 8
+        );
+
+        ctx.moveTo(
+            x + 4,
+            y + 8
+        );
+
+        ctx.lineTo(
+            x + 4,
+            y + 16
+        );
+
+        ctx.moveTo(
+            x + 12,
+            y + 8
+        );
+
+        ctx.lineTo(
+            x + 12,
+            y + 16
+        );
+
+        ctx.stroke();
+
+        return;
+
+    }
+
 
     ctx.fillStyle =
         block.hit
@@ -285,10 +337,6 @@ export function drawBlock(
     );
 
 
-    /*
-        Border
-    */
-
     ctx.strokeStyle =
         "#8A5A00";
 
@@ -302,10 +350,6 @@ export function drawBlock(
         block.height
     );
 
-
-    /*
-        Question mark
-    */
 
     if (!block.hit) {
 
@@ -323,15 +367,11 @@ export function drawBlock(
 
 
         ctx.fillText(
-
             "?",
-
             x +
                 block.width / 2,
-
             y +
                 block.height / 2
-
         );
 
     }
