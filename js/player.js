@@ -65,7 +65,6 @@ export function resetPlayer(
     player.velocityY = 0;
 
     player.grounded = false;
-
     player.jumpsUsed = 0;
 
     player.invincibleUntil = 0;
@@ -85,16 +84,14 @@ export function resetPlayer(
             player.width = BIG_WIDTH;
             player.height = BIG_HEIGHT;
 
-        }
-        else {
+        } else {
 
             player.width = SMALL_WIDTH;
             player.height = SMALL_HEIGHT;
 
         }
 
-    }
-    else {
+    } else {
 
         player.power = null;
         player.isBig = false;
@@ -124,7 +121,6 @@ export function updateInvincibility() {
     if (!isInvincible()) {
 
         player.damageFlash = false;
-
         return;
 
     }
@@ -143,14 +139,11 @@ export function damagePlayer() {
         return "invincible";
     }
 
-
     player.invincibleUntil =
         Date.now() +
         INVINCIBILITY_TIME;
 
-
     player.velocityY = -5;
-
 
     if (player.power !== null) {
 
@@ -169,7 +162,6 @@ export function damagePlayer() {
 
     }
 
-
     if (player.isBig) {
 
         player.isBig = false;
@@ -180,7 +172,6 @@ export function damagePlayer() {
         return "big";
 
     }
-
 
     return "dead";
 
@@ -270,14 +261,6 @@ export function updatePlayer(
 
     updateInvincibility();
 
-    /*
-        Save the player's position
-        BEFORE moving this frame.
-    */
-
-    player.previousY =
-        player.y;
-
     let moving = false;
 
 
@@ -309,36 +292,22 @@ export function updatePlayer(
 
     if (!moving) {
 
-        if (
-            player.velocityX > 0
-        ) {
+        if (player.velocityX > 0) {
 
-            player.velocityX -=
-                player.friction;
+            player.velocityX -= player.friction;
 
-            if (
-                player.velocityX < 0
-            ) {
-
+            if (player.velocityX < 0) {
                 player.velocityX = 0;
-
             }
 
         }
 
-        else if (
-            player.velocityX < 0
-        ) {
+        else if (player.velocityX < 0) {
 
-            player.velocityX +=
-                player.friction;
+            player.velocityX += player.friction;
 
-            if (
-                player.velocityX > 0
-            ) {
-
+            if (player.velocityX > 0) {
                 player.velocityX = 0;
-
             }
 
         }
@@ -372,9 +341,7 @@ export function updatePlayer(
         player.velocityX;
 
 
-    if (
-        player.x < 0
-    ) {
+    if (player.x < 0) {
 
         player.x = 0;
         player.velocityX = 0;
@@ -397,6 +364,16 @@ export function updatePlayer(
     }
 
 
+    /*
+        IMPORTANT:
+        Remember where the player was
+        BEFORE vertical movement.
+    */
+
+    player.previousY =
+        player.y;
+
+
     const previousTop =
         player.y;
 
@@ -413,7 +390,8 @@ export function updatePlayer(
 
 
     for (
-        const platform of platforms
+        const platform
+        of platforms
     ) {
 
         if (
@@ -431,7 +409,6 @@ export function updatePlayer(
             player.velocityY = 0;
 
             player.grounded = true;
-
             player.jumpsUsed = 0;
 
             break;
@@ -442,17 +419,9 @@ export function updatePlayer(
 
 
     for (
-        const block of blocks
+        const block
+        of blocks
     ) {
-
-        if (
-            block.broken
-        ) {
-
-            continue;
-
-        }
-
 
         if (
             landingCollision(
@@ -469,7 +438,6 @@ export function updatePlayer(
             player.velocityY = 0;
 
             player.grounded = true;
-
             player.jumpsUsed = 0;
 
             break;
@@ -498,9 +466,7 @@ export function updatePlayer(
     }
 
 
-    if (
-        player.grounded
-    ) {
+    if (player.grounded) {
 
         player.jumpsUsed = 0;
 
@@ -511,15 +477,12 @@ export function updatePlayer(
 
 export function jump() {
 
-    if (
-        player.grounded
-    ) {
+    if (player.grounded) {
 
         player.velocityY =
             -player.jumpPower;
 
         player.grounded = false;
-
         player.jumpsUsed = 1;
 
         return true;
@@ -532,7 +495,6 @@ export function jump() {
             player.hasDoubleJump ||
             player.hasWings
         ) &&
-
         player.jumpsUsed < 2
     ) {
 
@@ -548,4 +510,4 @@ export function jump() {
 
     return false;
 
-        }
+}
