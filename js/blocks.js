@@ -80,9 +80,13 @@ function wasHitFromBelow(
     block
 ) {
 
-    const playerBottom =
-        player.y +
-        player.height;
+    if (
+        player.previousY === undefined
+    ) {
+
+        return false;
+
+    }
 
 
     const previousBottom =
@@ -90,15 +94,19 @@ function wasHitFromBelow(
         player.height;
 
 
+    const currentTop =
+        player.y;
+
+
     return (
 
-        player.previousY !== undefined &&
+        player.velocityY <= 0 &&
 
-        player.previousY >=
+        previousBottom >=
             block.y +
             block.height &&
 
-        playerBottom <=
+        currentTop <=
             block.y +
             block.height &&
 
@@ -151,7 +159,7 @@ export function hitBlock(
 
 
     /*
-        BRICKS
+        BRICK
     */
 
     if (
@@ -232,11 +240,7 @@ export function updateBlocks(
                 type: item,
 
                 x:
-                    block.x +
-                    (
-                        block.width -
-                        BLOCK_SIZE
-                    ) / 2,
+                    block.x,
 
                 y:
                     block.y -
@@ -423,4 +427,4 @@ export function drawBlock(
 
     }
 
-}
+            }
