@@ -891,12 +891,13 @@ function update() {
         else {
 
             const damageResult =
-                damagePlayer();
+                damagePlayer(player);
 
 
             if (
                 damageResult ===
-                "dead"
+                "dead" ||
+                damageResult === true
             ) {
 
                 resetCurrentLevel(
@@ -989,7 +990,10 @@ function update() {
 
     }
 
-        }function drawGame() {
+}
+
+
+function drawGame() {
 
     ctx.fillStyle =
         "#87CEEB";
