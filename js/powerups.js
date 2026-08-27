@@ -1,24 +1,64 @@
 export const POWER_TYPES = {
+
     WINGS: "wings",
     BUNNY: "bunny",
     FIRE: "fire"
+
 };
 
 
 export const ITEM_TYPES = {
+
     STRAWBERRY: "strawberry",
     WINGS: "wings",
     BUNNY: "bunny",
     FIRE: "fire"
+
 };
 
 
 const ITEM_SIZE = 16;
+
 const GRAVITY = 0.5;
+
 const MAX_FALL_SPEED = 8;
 
 
-export function createStrawberry(x, y) {
+/* =========================
+   CREATE ITEMS
+========================= */
+
+function createItem(
+    type,
+    x,
+    y
+) {
+
+    return {
+
+        type,
+
+        x,
+        y,
+
+        width: ITEM_SIZE,
+        height: ITEM_SIZE,
+
+        velocityY: 0,
+
+        grounded: false,
+
+        collected: false
+
+    };
+
+}
+
+
+export function createStrawberry(
+    x,
+    y
+) {
 
     return createItem(
         ITEM_TYPES.STRAWBERRY,
@@ -29,7 +69,10 @@ export function createStrawberry(x, y) {
 }
 
 
-export function createWings(x, y) {
+export function createWings(
+    x,
+    y
+) {
 
     return createItem(
         ITEM_TYPES.WINGS,
@@ -40,7 +83,10 @@ export function createWings(x, y) {
 }
 
 
-export function createBunny(x, y) {
+export function createBunny(
+    x,
+    y
+) {
 
     return createItem(
         ITEM_TYPES.BUNNY,
@@ -51,7 +97,10 @@ export function createBunny(x, y) {
 }
 
 
-export function createFire(x, y) {
+export function createFire(
+    x,
+    y
+) {
 
     return createItem(
         ITEM_TYPES.FIRE,
@@ -62,23 +111,15 @@ export function createFire(x, y) {
 }
 
 
-function createItem(type, x, y) {
+/* =========================
+   CREATE POWER-UP
+========================= */
 
-    return {
-        type,
-        x,
-        y,
-        width: ITEM_SIZE,
-        height: ITEM_SIZE,
-        velocityY: 0,
-        grounded: false,
-        collected: false
-    };
-
-}
-
-
-export function createPowerUp(type, x, y) {
+export function createPowerUp(
+    type,
+    x,
+    y
+) {
 
     if (
         type === ITEM_TYPES.STRAWBERRY
@@ -133,9 +174,14 @@ export function createPowerUp(type, x, y) {
 }
 
 
+/* =========================
+   UPDATE POWER-UPS
+========================= */
+
 export function updatePowerUps(
     items,
-    platforms
+    platforms,
+    blocks = []
 ) {
 
     for (
@@ -145,14 +191,18 @@ export function updatePowerUps(
         if (
             item.collected
         ) {
+
             continue;
+
         }
 
 
         if (
             item.grounded
         ) {
+
             continue;
+
         }
 
 
@@ -185,11 +235,20 @@ export function updatePowerUps(
             item.height;
 
 
+        let landed = false;
+
+
+        /*
+            PLATFORM COLLISION
+        */
+
         for (
-            const platform of platforms
+            const platform
+            of platforms
         ) {
 
             const horizontalCollision =
+
                 item.x <
                     platform.x +
                     platform.width &&
@@ -200,6 +259,7 @@ export function updatePowerUps(
 
 
             const verticalCollision =
+
                 previousBottom <=
                     platform.y &&
 
@@ -221,6 +281,65 @@ export function updatePowerUps(
 
                 item.grounded = true;
 
+                landed = true;
+
+                break;
+
+            }
+
+        }
+
+
+        if (landed) {
+
+            continue;
+
+        }
+
+
+        /*
+            BLOCK COLLISION
+        */
+
+        for (
+            const block
+            of blocks
+        ) {
+
+            const horizontalCollision =
+
+                item.x <
+                    block.x +
+                    block.width &&
+
+                item.x +
+                    item.width >
+                    block.x;
+
+
+            const verticalCollision =
+
+                previousBottom <=
+                    block.y &&
+
+                currentBottom >=
+                    block.y;
+
+
+            if (
+                horizontalCollision &&
+                verticalCollision &&
+                item.velocityY >= 0
+            ) {
+
+                item.y =
+                    block.y -
+                    item.height;
+
+                item.velocityY = 0;
+
+                item.grounded = true;
+
                 break;
 
             }
@@ -232,6 +351,10 @@ export function updatePowerUps(
 }
 
 
+/* =========================
+   COLLISION
+========================= */
+
 export function checkPowerUpCollision(
     player,
     item
@@ -240,11 +363,14 @@ export function checkPowerUpCollision(
     if (
         item.collected
     ) {
+
         return false;
+
     }
 
 
     return (
+
         player.x <
             item.x +
             item.width &&
@@ -260,10 +386,15 @@ export function checkPowerUpCollision(
         player.y +
             player.height >
             item.y
+
     );
 
 }
 
+
+/* =========================
+   COLLECT POWER-UP
+========================= */
 
 export function collectPowerUp(
     player,
@@ -273,7 +404,9 @@ export function collectPowerUp(
     if (
         item.collected
     ) {
-        return;
+
+        return false;
+
     }
 
 
@@ -285,6 +418,11 @@ export function collectPowerUp(
         player.height;
 
 
+    /*
+        STRAWBERRY
+        Makes the player big.
+    */
+
     if (
         item.type ===
         ITEM_TYPES.STRAWBERRY
@@ -293,90 +431,129 @@ export function collectPowerUp(
         player.isBig = true;
 
         player.width = 16;
+
         player.height = 32;
 
         player.y =
             feet -
             player.height;
 
-        return;
+        return true;
 
     }
 
+
+    /*
+        WINGS
+    */
 
     if (
         item.type ===
         ITEM_TYPES.WINGS
     ) {
 
-        clearAbilities(player);
+        clearAbilities(
+            player
+        );
+
 
         player.power =
             POWER_TYPES.WINGS;
 
         player.hasWings = true;
 
+
         player.width = 16;
+
         player.height = 32;
 
         player.y =
             feet -
             player.height;
 
-        return;
+        return true;
 
     }
 
+
+    /*
+        BUNNY
+    */
 
     if (
         item.type ===
         ITEM_TYPES.BUNNY
     ) {
 
-        clearAbilities(player);
+        clearAbilities(
+            player
+        );
+
 
         player.power =
             POWER_TYPES.BUNNY;
 
         player.hasDoubleJump = true;
 
+
         player.width = 16;
+
         player.height = 32;
 
         player.y =
             feet -
             player.height;
 
-        return;
+        return true;
 
     }
 
+
+    /*
+        FIRE
+    */
 
     if (
         item.type ===
         ITEM_TYPES.FIRE
     ) {
 
-        clearAbilities(player);
+        clearAbilities(
+            player
+        );
+
 
         player.power =
             POWER_TYPES.FIRE;
 
         player.hasFirePower = true;
 
+
         player.width = 16;
+
         player.height = 32;
 
         player.y =
             feet -
             player.height;
 
+        return true;
+
     }
+
+
+    return false;
 
 }
 
 
-function clearAbilities(player) {
+/* =========================
+   CLEAR ABILITIES
+========================= */
+
+function clearAbilities(
+    player
+) {
 
     player.power = null;
 
@@ -389,14 +566,22 @@ function clearAbilities(player) {
 }
 
 
-export function removePower(player) {
+/* =========================
+   REMOVE POWER
+========================= */
+
+export function removePower(
+    player
+) {
 
     const feet =
         player.y +
         player.height;
 
 
-    clearAbilities(player);
+    clearAbilities(
+        player
+    );
 
 
     if (
@@ -404,6 +589,7 @@ export function removePower(player) {
     ) {
 
         player.width = 16;
+
         player.height = 32;
 
         player.y =
@@ -415,6 +601,7 @@ export function removePower(player) {
     else {
 
         player.width = 16;
+
         player.height = 16;
 
         player.y =
@@ -426,18 +613,34 @@ export function removePower(player) {
 }
 
 
-export function damagePlayer(player) {
+/* =========================
+   DAMAGE PLAYER
+========================= */
+
+export function damagePlayer(
+    player
+) {
+
+    /*
+        POWER-UP IS LOST FIRST.
+    */
 
     if (
         player.power !== null
     ) {
 
-        removePower(player);
+        removePower(
+            player
+        );
 
         return false;
 
     }
 
+
+    /*
+        BIG PLAYER BECOMES SMALL.
+    */
 
     if (
         player.isBig
@@ -447,24 +650,37 @@ export function damagePlayer(player) {
             player.y +
             player.height;
 
+
         player.isBig = false;
 
+
         player.width = 16;
+
         player.height = 16;
+
 
         player.y =
             feet -
             player.height;
+
 
         return false;
 
     }
 
 
+    /*
+        SMALL PLAYER DIES.
+    */
+
     return true;
 
 }
 
+
+/* =========================
+   POWER CHECKS
+========================= */
 
 export function getPlayerPower(
     player
@@ -480,10 +696,12 @@ export function hasWings(
 ) {
 
     return (
+
         player.power ===
             POWER_TYPES.WINGS &&
 
         player.hasWings === true
+
     );
 
 }
@@ -494,10 +712,12 @@ export function canDoubleJump(
 ) {
 
     return (
+
         player.power ===
             POWER_TYPES.BUNNY &&
 
         player.hasDoubleJump === true
+
     );
 
 }
@@ -508,14 +728,20 @@ export function canShootFire(
 ) {
 
     return (
+
         player.power ===
             POWER_TYPES.FIRE &&
 
         player.hasFirePower === true
+
     );
 
 }
 
+
+/* =========================
+   RESET ITEMS
+========================= */
 
 export function resetPowerUps(
     items
