@@ -93,21 +93,23 @@ function wasHitFromBelow(
         player.previousY +
         player.height;
 
-
-    const currentTop =
-        player.y;
+    const currentBottom =
+        player.y +
+        player.height;
 
 
     return (
 
-        player.velocityY <= 0 &&
+        player.velocityY < 0 &&
 
         previousBottom >=
             block.y +
+
             block.height &&
 
-        currentTop <=
+        currentBottom <=
             block.y +
+
             block.height &&
 
         player.x <
@@ -154,22 +156,20 @@ export function hitBlock(
         block.y +
         block.height;
 
-
     player.velocityY = 0;
 
 
-    /*
-        BRICK
-    */
+    const type =
+        String(
+            block.content || ""
+        ).toLowerCase();
+
 
     if (
-        block.content ===
-        "BRICK"
+        type === "brick"
     ) {
 
-        if (
-            player.isBig
-        ) {
+        if (player.isBig) {
 
             block.broken = true;
 
@@ -179,10 +179,6 @@ export function hitBlock(
 
     }
 
-
-    /*
-        LUCKY BLOCK
-    */
 
     block.hit = true;
 
@@ -217,12 +213,8 @@ export function updateBlocks(
         of blocks
     ) {
 
-        if (
-            block.broken
-        ) {
-
+        if (block.broken) {
             continue;
-
         }
 
 
@@ -265,12 +257,8 @@ export function drawBlock(
     cameraY = 0
 ) {
 
-    if (
-        block.broken
-    ) {
-
+    if (block.broken) {
         return;
-
     }
 
 
@@ -283,14 +271,13 @@ export function drawBlock(
         cameraY;
 
 
-    /*
-        BRICK
-    */
+    const type =
+        String(
+            block.content || ""
+        ).toLowerCase();
 
-    if (
-        block.content ===
-        "BRICK"
-    ) {
+
+    if (type === "brick") {
 
         ctx.fillStyle =
             "#A85D32";
@@ -301,7 +288,6 @@ export function drawBlock(
             block.width,
             block.height
         );
-
 
         ctx.strokeStyle =
             "#67351F";
@@ -314,7 +300,6 @@ export function drawBlock(
             block.width,
             block.height
         );
-
 
         ctx.strokeStyle =
             "#7D4326";
@@ -368,15 +353,10 @@ export function drawBlock(
     }
 
 
-    /*
-        LUCKY BLOCK
-    */
-
     ctx.fillStyle =
         block.hit
             ? "#8A8A8A"
             : "#FFD447";
-
 
     ctx.fillRect(
         x,
@@ -391,7 +371,6 @@ export function drawBlock(
 
     ctx.lineWidth = 1;
 
-
     ctx.strokeRect(
         x,
         y,
@@ -400,9 +379,7 @@ export function drawBlock(
     );
 
 
-    if (
-        !block.hit
-    ) {
+    if (!block.hit) {
 
         ctx.fillStyle =
             "#5A3A00";
@@ -416,15 +393,12 @@ export function drawBlock(
         ctx.textBaseline =
             "middle";
 
-
         ctx.fillText(
             "?",
-            x +
-                block.width / 2,
-            y +
-                block.height / 2
+            x + block.width / 2,
+            y + block.height / 2
         );
 
     }
 
-            }
+}
