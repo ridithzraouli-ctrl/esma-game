@@ -75,6 +75,46 @@ export function checkBlockCollision(
 }
 
 
+function wasHitFromBelow(
+    player,
+    block
+) {
+
+    const playerBottom =
+        player.y +
+        player.height;
+
+
+    const previousBottom =
+        player.previousY +
+        player.height;
+
+
+    return (
+
+        player.previousY !== undefined &&
+
+        player.previousY >=
+            block.y +
+            block.height &&
+
+        playerBottom <=
+            block.y +
+            block.height &&
+
+        player.x <
+            block.x +
+            block.width &&
+
+        player.x +
+            player.width >
+            block.x
+
+    );
+
+}
+
+
 export function hitBlock(
     player,
     block
@@ -90,27 +130,15 @@ export function hitBlock(
     }
 
 
-    const previousBottom =
-        player.y +
-        player.height -
-        player.velocityY;
+    if (
+        !wasHitFromBelow(
+            player,
+            block
+        )
+    ) {
 
-
-    const hittingFromBelow =
-
-        player.velocityY < 0 &&
-
-        previousBottom >=
-            block.y +
-            block.height - 1 &&
-
-        player.y <
-            block.y +
-            block.height;
-
-
-    if (!hittingFromBelow) {
         return null;
+
     }
 
 
@@ -121,6 +149,10 @@ export function hitBlock(
 
     player.velocityY = 0;
 
+
+    /*
+        BRICKS
+    */
 
     if (
         block.content ===
@@ -139,6 +171,10 @@ export function hitBlock(
 
     }
 
+
+    /*
+        LUCKY BLOCK
+    */
 
     block.hit = true;
 
@@ -174,10 +210,7 @@ export function updateBlocks(
     ) {
 
         if (
-            !checkBlockCollision(
-                player,
-                block
-            )
+            block.broken
         ) {
 
             continue;
@@ -228,8 +261,12 @@ export function drawBlock(
     cameraY = 0
 ) {
 
-    if (block.broken) {
+    if (
+        block.broken
+    ) {
+
         return;
+
     }
 
 
@@ -241,6 +278,10 @@ export function drawBlock(
         block.y -
         cameraY;
 
+
+    /*
+        BRICK
+    */
 
     if (
         block.content ===
@@ -323,6 +364,10 @@ export function drawBlock(
     }
 
 
+    /*
+        LUCKY BLOCK
+    */
+
     ctx.fillStyle =
         block.hit
             ? "#8A8A8A"
@@ -351,7 +396,9 @@ export function drawBlock(
     );
 
 
-    if (!block.hit) {
+    if (
+        !block.hit
+    ) {
 
         ctx.fillStyle =
             "#5A3A00";
