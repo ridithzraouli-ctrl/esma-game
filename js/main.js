@@ -74,24 +74,19 @@ import {
 } from "./progression.js";
 
 
-const canvas =
-    document.getElementById("game");
-
-const ctx =
-    canvas.getContext("2d");
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
 canvas.width = 960;
 canvas.height = 540;
 
 ctx.imageSmoothingEnabled = false;
 
-
 const keys = {};
 
 let enemies = [];
 let powerUps = [];
 let blocks = [];
-
 
 let mapCharacter = {
     x: 150,
@@ -104,106 +99,68 @@ let mapTarget = {
 };
 
 
-/* =========================
-   KEYBOARD
-========================= */
+document.addEventListener("keydown", event => {
 
-document.addEventListener(
-    "keydown",
-    event => {
+    const key = event.key.toLowerCase();
 
-        const key =
-            event.key.toLowerCase();
+    keys[key] = true;
 
-        keys[key] = true;
+    if (
+        key === " " ||
+        key === "arrowup" ||
+        key === "arrowdown" ||
+        key === "arrowleft" ||
+        key === "arrowright"
+    ) {
+        event.preventDefault();
+    }
 
+    if (gameState === GAME_STATES.PLAYING) {
 
         if (
             key === " " ||
             key === "arrowup" ||
-            key === "arrowdown" ||
+            key === "w"
+        ) {
+            jump();
+        }
+
+    }
+
+    if (gameState === GAME_STATES.WORLD_MAP) {
+
+        if (
+            key === "arrowright" ||
+            key === "d"
+        ) {
+            switchWorld(1);
+        }
+
+        if (
             key === "arrowleft" ||
-            key === "arrowright"
+            key === "a"
         ) {
-
-            event.preventDefault();
-
+            switchWorld(-1);
         }
 
-
         if (
-            gameState ===
-            GAME_STATES.PLAYING
+            key === "enter" ||
+            key === " "
         ) {
-
-            if (
-                key === " " ||
-                key === "arrowup" ||
-                key === "w"
-            ) {
-
-                jump();
-
-            }
-
-        }
-
-
-        if (
-            gameState ===
-            GAME_STATES.WORLD_MAP
-        ) {
-
-            if (
-                key === "arrowright" ||
-                key === "d"
-            ) {
-
-                switchWorld(1);
-
-            }
-
-
-            if (
-                key === "arrowleft" ||
-                key === "a"
-            ) {
-
-                switchWorld(-1);
-
-            }
-
-
-            if (
-                key === "enter" ||
-                key === " "
-            ) {
-
-                openSelectedLevel();
-
-            }
-
+            openSelectedLevel();
         }
 
     }
-);
+
+});
 
 
-document.addEventListener(
-    "keyup",
-    event => {
+document.addEventListener("keyup", event => {
 
-        keys[
-            event.key.toLowerCase()
-        ] = false;
+    keys[event.key.toLowerCase()] = false;
 
-    }
-);
+});
 
-
-/* =========================
-   ENEMIES
-========================= */
 
 function createEnemyFromData(data) {
 
@@ -235,34 +192,21 @@ function createEnemyFromData(data) {
 }
 
 
-/* =========================
-   LOAD LEVEL
-========================= */
-
 function loadLevelObjects() {
 
-    const level =
-        getCurrentLevel();
+    const level = getCurrentLevel();
 
     enemies = [];
     powerUps = [];
 
+    blocks = createBlocks(
+        level.blocks || []
+    );
 
-    blocks =
-        createBlocks(
-            level.blocks || []
-        );
-
-
-    for (
-        const enemyData
-        of level.enemies
-    ) {
+    for (const enemyData of level.enemies || []) {
 
         const enemy =
-            createEnemyFromData(
-                enemyData
-            );
+            createEnemyFromData(enemyData);
 
         if (enemy) {
             enemies.push(enemy);
@@ -273,17 +217,9 @@ function loadLevelObjects() {
 }
 
 
-/* =========================
-   RESET LEVEL
-========================= */
+function resetCurrentLevel(keepPower = false) {
 
-function resetCurrentLevel(
-    keepPower = false
-) {
-
-    const level =
-        getCurrentLevel();
-
+    const level = getCurrentLevel();
 
     resetPlayer(
         level.spawn.x,
@@ -291,27 +227,19 @@ function resetCurrentLevel(
         keepPower
     );
 
-
     camera.x = 0;
     camera.y = 0;
-
 
     loadLevelObjects();
 
 }
 
 
-/* =========================
-   WORLD MAP
-========================= */
-
 function switchWorld(direction) {
 
-    let world =
-        getSelectedWorld();
+    let world = getSelectedWorld();
 
     world += direction;
-
 
     if (world < 1) {
         world = 3;
@@ -321,13 +249,9 @@ function switchWorld(direction) {
         world = 1;
     }
 
-
-    if (
-        isWorldUnlocked(world)
-    ) {
+    if (isWorldUnlocked(world)) {
 
         setSelectedWorld(world);
-
         updateMapCharacter();
 
     }
@@ -337,38 +261,21 @@ function switchWorld(direction) {
 
 function updateMapCharacter() {
 
-    const map =
-        getWorldMap();
-
-    const level =
-        getSelectedLevel();
-
-    const node =
-        map.nodes[level - 1];
-
+    const map = getWorldMap();
+    const level = getSelectedLevel();
+    const node = map.nodes[level - 1];
 
     if (!node) {
         return;
     }
 
+    mapTarget.x = node.x;
+    mapTarget.y = node.y;
 
-    mapTarget.x =
-        node.x;
+    if (!mapCharacter.x && !mapCharacter.y) {
 
-    mapTarget.y =
-        node.y;
-
-
-    if (
-        !mapCharacter.x &&
-        !mapCharacter.y
-    ) {
-
-        mapCharacter.x =
-            node.x;
-
-        mapCharacter.y =
-            node.y;
+        mapCharacter.x = node.x;
+        mapCharacter.y = node.y;
 
     }
 
@@ -377,33 +284,16 @@ function updateMapCharacter() {
 
 function openSelectedLevel() {
 
-    const world =
-        getSelectedWorld();
+    const world = getSelectedWorld();
+    const level = getSelectedLevel();
 
-    const level =
-        getSelectedLevel();
-
-
-    if (
-        !isLevelUnlocked(
-            world,
-            level
-        )
-    ) {
-
+    if (!isLevelUnlocked(world, level)) {
         return;
-
     }
 
-
-    setLevel(
-        world,
-        level
-    );
-
+    setLevel(world, level);
 
     resetCurrentLevel(true);
-
 
     setGameState(
         GAME_STATES.PLAYING
@@ -422,232 +312,183 @@ function updateWorldMap() {
         mapTarget.y -
         mapCharacter.y;
 
-
     const distance =
-        Math.sqrt(
-            dx * dx +
-            dy * dy
-        );
+        Math.sqrt(dx * dx + dy * dy);
 
+    if (distance > 2) {
 
-    if (
-        distance > 2
-    ) {
-
-        mapCharacter.x +=
-            dx * 0.08;
-
-        mapCharacter.y +=
-            dy * 0.08;
+        mapCharacter.x += dx * 0.08;
+        mapCharacter.y += dy * 0.08;
 
     }
 
 }
 
 
-/* =========================
-   MOUSE
-========================= */
+canvas.addEventListener("click", event => {
 
-canvas.addEventListener(
-    "click",
-    event => {
+    const rect =
+        canvas.getBoundingClientRect();
 
-        const rect =
-            canvas.getBoundingClientRect();
+    const mouseX =
+        (event.clientX - rect.left) *
+        (canvas.width / rect.width);
 
-
-        const mouseX =
-            (
-                event.clientX -
-                rect.left
-            ) *
-            (
-                canvas.width /
-                rect.width
-            );
+    const mouseY =
+        (event.clientY - rect.top) *
+        (canvas.height / rect.height);
 
 
-        const mouseY =
-            (
-                event.clientY -
-                rect.top
-            ) *
-            (
-                canvas.height /
-                rect.height
-            );
-
+    if (gameState === GAME_STATES.MENU) {
 
         if (
-            gameState ===
-            GAME_STATES.MENU
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                245,
+                300,
+                60
+            )
         ) {
 
-            if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    245,
-                    300,
-                    60
-                )
-            ) {
+            setGameState(
+                GAME_STATES.WORLD_MAP
+            );
 
-                setGameState(
-                    GAME_STATES.WORLD_MAP
-                );
-
-                updateMapCharacter();
-
-            }
-
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    320,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.HOW_TO_PLAY
-                );
-
-            }
-
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    395,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.SETTINGS
-                );
-
-            }
+            updateMapCharacter();
 
         }
 
-
         else if (
-            gameState ===
-            GAME_STATES.WORLD_MAP
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                320,
+                300,
+                60
+            )
         ) {
 
-            handleWorldMapClick(
-                mouseX,
-                mouseY
+            setGameState(
+                GAME_STATES.HOW_TO_PLAY
             );
 
         }
 
-
         else if (
-            gameState ===
-            GAME_STATES.HOW_TO_PLAY
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                395,
+                300,
+                60
+            )
         ) {
 
-            if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    445,
-                    300,
-                    55
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.MENU
-                );
-
-            }
-
-        }
-
-
-        else if (
-            gameState ===
-            GAME_STATES.SETTINGS
-        ) {
-
-            if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    210,
-                    300,
-                    60
-                )
-            ) {
-
-                toggleMusic();
-
-            }
-
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    285,
-                    300,
-                    60
-                )
-            ) {
-
-                toggleSound();
-
-            }
-
-
-            else if (
-                isInsideButton(
-                    mouseX,
-                    mouseY,
-                    330,
-                    390,
-                    300,
-                    60
-                )
-            ) {
-
-                setGameState(
-                    GAME_STATES.MENU
-                );
-
-            }
+            setGameState(
+                GAME_STATES.SETTINGS
+            );
 
         }
 
     }
-);
+
+    else if (
+        gameState === GAME_STATES.WORLD_MAP
+    ) {
+
+        handleWorldMapClick(
+            mouseX,
+            mouseY
+        );
+
+    }
+
+    else if (
+        gameState === GAME_STATES.HOW_TO_PLAY
+    ) {
+
+        if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                445,
+                300,
+                55
+            )
+        ) {
+
+            setGameState(
+                GAME_STATES.MENU
+            );
+
+        }
+
+    }
+
+    else if (
+        gameState === GAME_STATES.SETTINGS
+    ) {
+
+        if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                210,
+                300,
+                60
+            )
+        ) {
+
+            toggleMusic();
+
+        }
+
+        else if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                285,
+                300,
+                60
+            )
+        ) {
+
+            toggleSound();
+
+        }
+
+        else if (
+            isInsideButton(
+                mouseX,
+                mouseY,
+                330,
+                390,
+                300,
+                60
+            )
+        ) {
+
+            setGameState(
+                GAME_STATES.MENU
+            );
+
+        }
+
+    }
+
+});
 
 
-function handleWorldMapClick(
-    mouseX,
-    mouseY
-) {
+function handleWorldMapClick(mouseX, mouseY) {
 
-    const map =
-        getWorldMap();
-
+    const map = getWorldMap();
 
     for (
         let i = 0;
@@ -655,19 +496,14 @@ function handleWorldMapClick(
         i++
     ) {
 
-        const node =
-            map.nodes[i];
-
-        const level =
-            i + 1;
-
+        const node = map.nodes[i];
+        const level = i + 1;
 
         const distance =
             Math.sqrt(
                 (mouseX - node.x) ** 2 +
                 (mouseY - node.y) ** 2
             );
-
 
         if (
             distance <= 35 &&
@@ -677,17 +513,10 @@ function handleWorldMapClick(
             )
         ) {
 
-            setSelectedLevel(
-                level
-            );
+            setSelectedLevel(level);
 
-
-            mapTarget.x =
-                node.x;
-
-            mapTarget.y =
-                node.y;
-
+            mapTarget.x = node.x;
+            mapTarget.y = node.y;
 
             openSelectedLevel();
 
@@ -700,10 +529,6 @@ function handleWorldMapClick(
 }
 
 
-/* =========================
-   GAME UPDATE
-========================= */
-
 function update() {
 
     if (
@@ -712,38 +537,18 @@ function update() {
     ) {
 
         updateWorldMap();
-
         return;
 
     }
-
 
     if (
         gameState !==
         GAME_STATES.PLAYING
     ) {
-
         return;
-
     }
 
-
-    const level =
-        getCurrentLevel();
-
-
-    /*
-        IMPORTANT:
-
-        Blocks are updated BEFORE the player.
-
-        This lets hitBlock() see the player's
-        upward velocity before updatePlayer()
-        stops it against the block.
-
-        This is what makes ? blocks actually
-        release their items.
-    */
+    const level = getCurrentLevel();
 
     const releasedItems =
         updateBlocks(
@@ -751,11 +556,7 @@ function update() {
             blocks
         );
 
-
-    for (
-        const item
-        of releasedItems
-    ) {
+    for (const item of releasedItems) {
 
         const powerUp =
             createPowerUp(
@@ -764,17 +565,11 @@ function update() {
                 item.y
             );
 
-
         if (powerUp) {
-
-            powerUps.push(
-                powerUp
-            );
-
+            powerUps.push(powerUp);
         }
 
     }
-
 
     updatePlayer(
         keys,
@@ -782,17 +577,13 @@ function update() {
         blocks
     );
 
-
     updatePowerUps(
         powerUps,
-        level.platforms
+        level.platforms,
+        blocks
     );
 
-
-    for (
-        const powerUp
-        of powerUps
-    ) {
+    for (const powerUp of powerUps) {
 
         if (
             checkPowerUpCollision(
@@ -811,14 +602,7 @@ function update() {
     }
 
 
-    /* =========================
-       ENEMIES
-    ========================= */
-
-    for (
-        const enemy
-        of enemies
-    ) {
+    for (const enemy of enemies) {
 
         updateEnemy(
             enemy,
@@ -828,15 +612,11 @@ function update() {
     }
 
 
-    for (
-        const enemy
-        of enemies
-    ) {
+    for (const enemy of enemies) {
 
         if (!enemy.alive) {
             continue;
         }
-
 
         if (
             !checkEnemyCollision(
@@ -844,11 +624,8 @@ function update() {
                 enemy
             )
         ) {
-
             continue;
-
         }
-
 
         if (
             canStompEnemy(
@@ -857,38 +634,20 @@ function update() {
             )
         ) {
 
-            defeatEnemy(
-                enemy
-            );
+            defeatEnemy(enemy);
 
-
-            player.velocityY =
-                -7;
+            player.velocityY = -7;
 
         }
 
         else {
 
-            /*
-                FIX:
-                damagePlayer() requires
-                the actual player object.
-            */
-
             const damageResult =
-                damagePlayer(
-                    player
-                );
+                damagePlayer(player);
 
+            if (damageResult === true) {
 
-            if (
-                damageResult === true
-            ) {
-
-                resetCurrentLevel(
-                    false
-                );
-
+                resetCurrentLevel(false);
                 return;
 
             }
@@ -905,26 +664,18 @@ function update() {
     );
 
 
-    /* =========================
-       EXIT
-    ========================= */
-
-    const exit =
-        level.exit;
-
+    const exit = level.exit;
 
     const reachedExit =
         player.x <
-            exit.x +
-            exit.width &&
+            exit.x + exit.width &&
 
         player.x +
             player.width >
             exit.x &&
 
         player.y <
-            exit.y +
-            exit.height &&
+            exit.y + exit.height &&
 
         player.y +
             player.height >
@@ -933,18 +684,13 @@ function update() {
 
     if (reachedExit) {
 
-        const world =
-            getSelectedWorld();
-
-        const currentLevel =
-            getSelectedLevel();
-
+        const world = getSelectedWorld();
+        const currentLevel = getSelectedLevel();
 
         completeLevel(
             world,
             currentLevel
         );
-
 
         if (nextLevel()) {
 
@@ -965,10 +711,6 @@ function update() {
     }
 
 
-    /* =========================
-       FALL DEATH
-    ========================= */
-
     if (
         player.y >
         canvas.height + 300
@@ -981,15 +723,9 @@ function update() {
 }
 
 
-/* =========================
-   DRAW GAME
-========================= */
-
 function drawGame() {
 
-    ctx.fillStyle =
-        "#87CEEB";
-
+    ctx.fillStyle = "#87CEEB";
 
     ctx.fillRect(
         0,
@@ -998,13 +734,9 @@ function drawGame() {
         canvas.height
     );
 
-
-    const level =
-        getCurrentLevel();
-
+    const level = getCurrentLevel();
 
     ctx.save();
-
 
     ctx.translate(
         -camera.x,
@@ -1012,18 +744,12 @@ function drawGame() {
     );
 
 
-    /* =========================
-       PLATFORMS
-    ========================= */
-
     for (
         const platform
         of level.platforms
     ) {
 
-        ctx.fillStyle =
-            "#8B5A2B";
-
+        ctx.fillStyle = "#8B5A2B";
 
         ctx.fillRect(
             platform.x,
@@ -1035,30 +761,19 @@ function drawGame() {
     }
 
 
-    /* =========================
-       BLOCKS
-    ========================= */
-
-    for (
-        const block
-        of blocks
-    ) {
+    for (const block of blocks) {
 
         drawBlock(
             ctx,
-            block
+            block,
+            camera.x,
+            camera.y
         );
 
     }
 
 
-    /* =========================
-       EXIT
-    ========================= */
-
-    ctx.fillStyle =
-        "#00FF00";
-
+    ctx.fillStyle = "#00FF00";
 
     ctx.fillRect(
         level.exit.x,
@@ -1068,31 +783,18 @@ function drawGame() {
     );
 
 
-    /* =========================
-       POWER UPS
-    ========================= */
+    for (const powerUp of powerUps) {
 
-    for (
-        const powerUp
-        of powerUps
-    ) {
-
-        if (
-            powerUp.collected
-        ) {
-
+        if (powerUp.collected) {
             continue;
-
         }
-
 
         if (
             powerUp.type ===
             ITEM_TYPES.STRAWBERRY
         ) {
 
-            ctx.fillStyle =
-                "#FF3B81";
+            ctx.fillStyle = "#FF3B81";
 
         }
 
@@ -1101,8 +803,7 @@ function drawGame() {
             ITEM_TYPES.WINGS
         ) {
 
-            ctx.fillStyle =
-                "#F5F5F5";
+            ctx.fillStyle = "#F5F5F5";
 
         }
 
@@ -1111,8 +812,7 @@ function drawGame() {
             ITEM_TYPES.BUNNY
         ) {
 
-            ctx.fillStyle =
-                "#B66DFF";
+            ctx.fillStyle = "#B66DFF";
 
         }
 
@@ -1121,11 +821,9 @@ function drawGame() {
             ITEM_TYPES.FIRE
         ) {
 
-            ctx.fillStyle =
-                "#FF6A00";
+            ctx.fillStyle = "#FF6A00";
 
         }
-
 
         ctx.fillRect(
             powerUp.x,
@@ -1137,36 +835,27 @@ function drawGame() {
     }
 
 
-    /* =========================
-       ENEMIES
-    ========================= */
+    const enemyColors = {
 
-    for (
-        const enemy
-        of enemies
-    ) {
+        beetle: "#174A24",
+        cockroach: "#7A3E18",
+        fly: "#FFD400",
+        spider: "#7138A6",
+        ghost: "#8DEBFF",
+        cactus: "#31A84A"
+
+    };
+
+
+    for (const enemy of enemies) {
 
         if (!enemy.alive) {
             continue;
         }
 
-
-        const colors = {
-
-            beetle: "#174A24",
-            cockroach: "#7A3E18",
-            fly: "#FFD400",
-            spider: "#7138A6",
-            ghost: "#8DEBFF",
-            cactus: "#31A84A"
-
-        };
-
-
         ctx.fillStyle =
-            colors[enemy.type] ||
+            enemyColors[enemy.type] ||
             "#FF00FF";
-
 
         ctx.fillRect(
             enemy.x,
@@ -1178,18 +867,9 @@ function drawGame() {
     }
 
 
-    /* =========================
-       WINGS
-    ========================= */
+    if (player.power === "wings") {
 
-    if (
-        player.power ===
-        "wings"
-    ) {
-
-        ctx.fillStyle =
-            "#FFFFFF";
-
+        ctx.fillStyle = "#FFFFFF";
 
         ctx.fillRect(
             player.x - 10,
@@ -1198,10 +878,8 @@ function drawGame() {
             24
         );
 
-
         ctx.fillRect(
-            player.x +
-                player.width,
+            player.x + player.width,
             player.y + 12,
             10,
             24
@@ -1210,43 +888,27 @@ function drawGame() {
     }
 
 
-    /* =========================
-       PLAYER
-    ========================= */
+    if (player.power === "bunny") {
 
-    if (
-        player.power ===
-        "bunny"
-    ) {
-
-        ctx.fillStyle =
-            "#B66DFF";
+        ctx.fillStyle = "#B66DFF";
 
     }
 
-    else if (
-        player.power ===
-        "fire"
-    ) {
+    else if (player.power === "fire") {
 
-        ctx.fillStyle =
-            "#FF6A00";
+        ctx.fillStyle = "#FF6A00";
 
     }
 
-    else if (
-        player.isBig
-    ) {
+    else if (player.isBig) {
 
-        ctx.fillStyle =
-            "#FF3B81";
+        ctx.fillStyle = "#FF3B81";
 
     }
 
     else {
 
-        ctx.fillStyle =
-            "#3D7EFF";
+        ctx.fillStyle = "#3D7EFF";
 
     }
 
@@ -1266,21 +928,11 @@ function drawGame() {
     ctx.restore();
 
 
-    /* =========================
-       HUD
-    ========================= */
+    ctx.fillStyle = "#FFFFFF";
 
-    ctx.fillStyle =
-        "#FFFFFF";
+    ctx.font = "bold 20px Arial";
 
-
-    ctx.font =
-        "bold 20px Arial";
-
-
-    ctx.textAlign =
-        "left";
-
+    ctx.textAlign = "left";
 
     ctx.fillText(
         "WORLD " +
@@ -1290,7 +942,6 @@ function drawGame() {
         20,
         30
     );
-
 
     ctx.fillText(
         "🪙 " +
@@ -1305,10 +956,6 @@ function drawGame() {
 }
 
 
-/* =========================
-   WORLD MAP
-========================= */
-
 function drawWorldMapScreen() {
 
     drawWorldMap(
@@ -1318,10 +965,6 @@ function drawWorldMapScreen() {
 
 }
 
-
-/* =========================
-   DRAW
-========================= */
 
 function draw() {
 
@@ -1373,14 +1016,9 @@ function draw() {
 }
 
 
-/* =========================
-   GAME LOOP
-========================= */
-
 function gameLoop() {
 
     update();
-
     draw();
 
     requestAnimationFrame(
