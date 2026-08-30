@@ -73,7 +73,6 @@ import {
     getCoinCount
 } from "./progression.js";
 
-
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -98,9 +97,7 @@ let mapTarget = {
     y: 390
 };
 
-
 document.addEventListener("keydown", event => {
-
     const key = event.key.toLowerCase();
 
     keys[key] = true;
@@ -115,20 +112,18 @@ document.addEventListener("keydown", event => {
         event.preventDefault();
     }
 
-    if (gameState === GAME_STATES.PLAYING) {
-
-        if (
+    if (
+        gameState === GAME_STATES.PLAYING &&
+        (
             key === " " ||
             key === "arrowup" ||
             key === "w"
-        ) {
-            jump();
-        }
-
+        )
+    ) {
+        jump();
     }
 
     if (gameState === GAME_STATES.WORLD_MAP) {
-
         if (
             key === "arrowright" ||
             key === "d"
@@ -149,21 +144,14 @@ document.addEventListener("keydown", event => {
         ) {
             openSelectedLevel();
         }
-
     }
-
 });
-
 
 document.addEventListener("keyup", event => {
-
     keys[event.key.toLowerCase()] = false;
-
 });
 
-
 function createEnemyFromData(data) {
-
     if (data.type === "beetle") {
         return createBeetle(data.x, data.y);
     }
@@ -191,9 +179,7 @@ function createEnemyFromData(data) {
     return null;
 }
 
-
 function loadLevelObjects() {
-
     const level = getCurrentLevel();
 
     enemies = [];
@@ -204,21 +190,16 @@ function loadLevelObjects() {
     );
 
     for (const enemyData of level.enemies || []) {
-
         const enemy =
             createEnemyFromData(enemyData);
 
         if (enemy) {
             enemies.push(enemy);
         }
-
     }
-
 }
 
-
 function resetCurrentLevel(keepPower = false) {
-
     const level = getCurrentLevel();
 
     resetPlayer(
@@ -231,12 +212,9 @@ function resetCurrentLevel(keepPower = false) {
     camera.y = 0;
 
     loadLevelObjects();
-
 }
 
-
 function switchWorld(direction) {
-
     let world = getSelectedWorld();
 
     world += direction;
@@ -250,17 +228,12 @@ function switchWorld(direction) {
     }
 
     if (isWorldUnlocked(world)) {
-
         setSelectedWorld(world);
         updateMapCharacter();
-
     }
-
 }
 
-
 function updateMapCharacter() {
-
     const map = getWorldMap();
     const level = getSelectedLevel();
     const node = map.nodes[level - 1];
@@ -273,17 +246,12 @@ function updateMapCharacter() {
     mapTarget.y = node.y;
 
     if (!mapCharacter.x && !mapCharacter.y) {
-
         mapCharacter.x = node.x;
         mapCharacter.y = node.y;
-
     }
-
 }
 
-
 function openSelectedLevel() {
-
     const world = getSelectedWorld();
     const level = getSelectedLevel();
 
@@ -298,12 +266,9 @@ function openSelectedLevel() {
     setGameState(
         GAME_STATES.PLAYING
     );
-
 }
 
-
 function updateWorldMap() {
-
     const dx =
         mapTarget.x -
         mapCharacter.x;
@@ -316,17 +281,12 @@ function updateWorldMap() {
         Math.sqrt(dx * dx + dy * dy);
 
     if (distance > 2) {
-
         mapCharacter.x += dx * 0.08;
         mapCharacter.y += dy * 0.08;
-
     }
-
 }
 
-
 canvas.addEventListener("click", event => {
-
     const rect =
         canvas.getBoundingClientRect();
 
@@ -338,9 +298,7 @@ canvas.addEventListener("click", event => {
         (event.clientY - rect.top) *
         (canvas.height / rect.height);
 
-
     if (gameState === GAME_STATES.MENU) {
-
         if (
             isInsideButton(
                 mouseX,
@@ -351,13 +309,11 @@ canvas.addEventListener("click", event => {
                 60
             )
         ) {
-
             setGameState(
                 GAME_STATES.WORLD_MAP
             );
 
             updateMapCharacter();
-
         }
 
         else if (
@@ -370,11 +326,9 @@ canvas.addEventListener("click", event => {
                 60
             )
         ) {
-
             setGameState(
                 GAME_STATES.HOW_TO_PLAY
             );
-
         }
 
         else if (
@@ -387,30 +341,24 @@ canvas.addEventListener("click", event => {
                 60
             )
         ) {
-
             setGameState(
                 GAME_STATES.SETTINGS
             );
-
         }
-
     }
 
     else if (
         gameState === GAME_STATES.WORLD_MAP
     ) {
-
         handleWorldMapClick(
             mouseX,
             mouseY
         );
-
     }
 
     else if (
         gameState === GAME_STATES.HOW_TO_PLAY
     ) {
-
         if (
             isInsideButton(
                 mouseX,
@@ -421,19 +369,15 @@ canvas.addEventListener("click", event => {
                 55
             )
         ) {
-
             setGameState(
                 GAME_STATES.MENU
             );
-
         }
-
     }
 
     else if (
         gameState === GAME_STATES.SETTINGS
     ) {
-
         if (
             isInsideButton(
                 mouseX,
@@ -444,9 +388,7 @@ canvas.addEventListener("click", event => {
                 60
             )
         ) {
-
             toggleMusic();
-
         }
 
         else if (
@@ -459,9 +401,7 @@ canvas.addEventListener("click", event => {
                 60
             )
         ) {
-
             toggleSound();
-
         }
 
         else if (
@@ -474,20 +414,14 @@ canvas.addEventListener("click", event => {
                 60
             )
         ) {
-
             setGameState(
                 GAME_STATES.MENU
             );
-
         }
-
     }
-
 });
 
-
 function handleWorldMapClick(mouseX, mouseY) {
-
     const map = getWorldMap();
 
     for (
@@ -495,7 +429,6 @@ function handleWorldMapClick(mouseX, mouseY) {
         i < map.nodes.length;
         i++
     ) {
-
         const node = map.nodes[i];
         const level = i + 1;
 
@@ -512,7 +445,6 @@ function handleWorldMapClick(mouseX, mouseY) {
                 level
             )
         ) {
-
             setSelectedLevel(level);
 
             mapTarget.x = node.x;
@@ -521,24 +453,17 @@ function handleWorldMapClick(mouseX, mouseY) {
             openSelectedLevel();
 
             return;
-
         }
-
     }
-
 }
 
-
 function update() {
-
     if (
         gameState ===
         GAME_STATES.WORLD_MAP
     ) {
-
         updateWorldMap();
         return;
-
     }
 
     if (
@@ -557,7 +482,6 @@ function update() {
         );
 
     for (const item of releasedItems) {
-
         const powerUp =
             createPowerUp(
                 item.type,
@@ -568,7 +492,6 @@ function update() {
         if (powerUp) {
             powerUps.push(powerUp);
         }
-
     }
 
     updatePlayer(
@@ -584,36 +507,27 @@ function update() {
     );
 
     for (const powerUp of powerUps) {
-
         if (
             checkPowerUpCollision(
                 player,
                 powerUp
             )
         ) {
-
             collectPowerUp(
                 player,
                 powerUp
             );
-
         }
-
     }
 
-
     for (const enemy of enemies) {
-
         updateEnemy(
             enemy,
             level.platforms
         );
-
     }
 
-
     for (const enemy of enemies) {
-
         if (!enemy.alive) {
             continue;
         }
@@ -633,29 +547,20 @@ function update() {
                 enemy
             )
         ) {
-
             defeatEnemy(enemy);
-
             player.velocityY = -7;
-
         }
 
         else {
-
             const damageResult =
                 damagePlayer(player);
 
             if (damageResult === true) {
-
                 resetCurrentLevel(false);
                 return;
-
             }
-
         }
-
     }
-
 
     updateCamera(
         player,
@@ -663,27 +568,21 @@ function update() {
         WORLD_WIDTH
     );
 
-
     const exit = level.exit;
 
     const reachedExit =
         player.x <
             exit.x + exit.width &&
-
         player.x +
             player.width >
             exit.x &&
-
         player.y <
             exit.y + exit.height &&
-
         player.y +
             player.height >
             exit.y;
 
-
     if (reachedExit) {
-
         const world = getSelectedWorld();
         const currentLevel = getSelectedLevel();
 
@@ -693,38 +592,27 @@ function update() {
         );
 
         if (nextLevel()) {
-
             resetCurrentLevel(true);
-
         }
 
         else {
-
             setGameState(
                 GAME_STATES.WORLD_MAP
             );
 
             updateMapCharacter();
-
         }
-
     }
-
 
     if (
         player.y >
         canvas.height + 300
     ) {
-
         resetCurrentLevel(false);
-
     }
-
 }
 
-
 function drawGame() {
-
     ctx.fillStyle = "#87CEEB";
 
     ctx.fillRect(
@@ -743,12 +631,10 @@ function drawGame() {
         -camera.y
     );
 
-
     for (
         const platform
         of level.platforms
     ) {
-
         ctx.fillStyle = "#8B5A2B";
 
         ctx.fillRect(
@@ -757,21 +643,14 @@ function drawGame() {
             platform.width,
             platform.height
         );
-
     }
-
 
     for (const block of blocks) {
-
         drawBlock(
             ctx,
-            block,
-            camera.x,
-            camera.y
+            block
         );
-
     }
-
 
     ctx.fillStyle = "#00FF00";
 
@@ -782,9 +661,7 @@ function drawGame() {
         level.exit.height
     );
 
-
     for (const powerUp of powerUps) {
-
         if (powerUp.collected) {
             continue;
         }
@@ -793,36 +670,28 @@ function drawGame() {
             powerUp.type ===
             ITEM_TYPES.STRAWBERRY
         ) {
-
             ctx.fillStyle = "#FF3B81";
-
         }
 
         else if (
             powerUp.type ===
             ITEM_TYPES.WINGS
         ) {
-
             ctx.fillStyle = "#F5F5F5";
-
         }
 
         else if (
             powerUp.type ===
             ITEM_TYPES.BUNNY
         ) {
-
             ctx.fillStyle = "#B66DFF";
-
         }
 
         else if (
             powerUp.type ===
             ITEM_TYPES.FIRE
         ) {
-
             ctx.fillStyle = "#FF6A00";
-
         }
 
         ctx.fillRect(
@@ -831,24 +700,18 @@ function drawGame() {
             powerUp.width,
             powerUp.height
         );
-
     }
 
-
     const enemyColors = {
-
         beetle: "#174A24",
         cockroach: "#7A3E18",
         fly: "#FFD400",
         spider: "#7138A6",
         ghost: "#8DEBFF",
         cactus: "#31A84A"
-
     };
 
-
     for (const enemy of enemies) {
-
         if (!enemy.alive) {
             continue;
         }
@@ -863,12 +726,9 @@ function drawGame() {
             enemy.width,
             enemy.height
         );
-
     }
 
-
     if (player.power === "wings") {
-
         ctx.fillStyle = "#FFFFFF";
 
         ctx.fillRect(
@@ -884,49 +744,34 @@ function drawGame() {
             10,
             24
         );
-
     }
 
-
     if (player.power === "bunny") {
-
         ctx.fillStyle = "#B66DFF";
-
     }
 
     else if (player.power === "fire") {
-
         ctx.fillStyle = "#FF6A00";
-
     }
 
     else if (player.isBig) {
-
         ctx.fillStyle = "#FF3B81";
-
     }
 
     else {
-
         ctx.fillStyle = "#3D7EFF";
-
     }
 
-
     if (!player.damageFlash) {
-
         ctx.fillRect(
             player.x,
             player.y,
             player.width,
             player.height
         );
-
     }
 
-
     ctx.restore();
-
 
     ctx.fillStyle = "#FFFFFF";
 
@@ -952,80 +797,59 @@ function drawGame() {
         20,
         60
     );
-
 }
 
-
 function drawWorldMapScreen() {
-
     drawWorldMap(
         ctx,
         mapCharacter
     );
-
 }
 
-
 function draw() {
-
     if (
         gameState ===
         GAME_STATES.MENU
     ) {
-
         drawMainMenu(ctx);
-
     }
 
     else if (
         gameState ===
         GAME_STATES.WORLD_MAP
     ) {
-
         drawWorldMapScreen();
-
     }
 
     else if (
         gameState ===
         GAME_STATES.HOW_TO_PLAY
     ) {
-
         drawHowToPlayScreen(ctx);
-
     }
 
     else if (
         gameState ===
         GAME_STATES.SETTINGS
     ) {
-
         drawSettingsScreen(ctx);
-
     }
 
     else if (
         gameState ===
         GAME_STATES.PLAYING
     ) {
-
         drawGame();
-
     }
-
 }
 
-
 function gameLoop() {
-
     update();
     draw();
 
     requestAnimationFrame(
         gameLoop
     );
-
 }
-
 
 gameLoop();
