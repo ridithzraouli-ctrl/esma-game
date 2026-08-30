@@ -12,45 +12,26 @@ export const ITEM_TYPES = {
 };
 
 const ITEM_SIZE = 16;
-
 const GRAVITY = 0.5;
 const MAX_FALL_SPEED = 8;
-
 const SLIDE_SPEED = 1.5;
 const EMERGE_SPEED = 1.5;
 
-
-/* =========================
-   CREATE ITEM
-========================= */
-
 function createItem(type, x, y) {
-
     return {
         type,
-
         x,
         y,
-
         width: ITEM_SIZE,
         height: ITEM_SIZE,
-
         velocityX: SLIDE_SPEED,
         velocityY: 0,
-
         grounded: false,
         collected: false,
-
         emerging: true,
-
-        emergeTargetY: y - ITEM_SIZE
+        emergeTargetY: y - ITEM_SIZE * 2
     };
 }
-
-
-/* =========================
-   CREATE ITEMS
-========================= */
 
 export function createStrawberry(x, y) {
     return createItem(
@@ -84,13 +65,7 @@ export function createFire(x, y) {
     );
 }
 
-
-/* =========================
-   CREATE POWER-UP
-========================= */
-
 export function createPowerUp(type, x, y) {
-
     if (type === ITEM_TYPES.STRAWBERRY) {
         return createStrawberry(x, y);
     }
@@ -110,199 +85,127 @@ export function createPowerUp(type, x, y) {
     return null;
 }
 
-
-/* =========================
-   UPDATE POWER-UPS
-========================= */
-
 export function updatePowerUps(
     items,
     platforms,
     blocks = []
 ) {
-
     for (const item of items) {
-
         if (item.collected) {
             continue;
         }
 
-
-        /*
-            POWER-UP EMERGES
-            FROM THE TOP
-            OF THE BLOCK
-        */
-
         if (item.emerging) {
-
             item.y -= EMERGE_SPEED;
-
 
             if (
                 item.y <=
                 item.emergeTargetY
             ) {
-
                 item.y =
                     item.emergeTargetY;
 
                 item.emerging = false;
-
                 item.grounded = true;
-
                 item.velocityY = 0;
             }
 
             continue;
         }
 
-
-        /*
-            HORIZONTAL MOVEMENT
-        */
-
-        item.x +=
-            item.velocityX;
-
-
-        /*
-            GRAVITY
-        */
+        item.x += item.velocityX;
 
         if (!item.grounded) {
-
-            item.velocityY +=
-                GRAVITY;
-
+            item.velocityY += GRAVITY;
 
             if (
                 item.velocityY >
                 MAX_FALL_SPEED
             ) {
-
                 item.velocityY =
                     MAX_FALL_SPEED;
-
             }
-
         }
 
-
-        const previousY =
-            item.y;
-
+        const previousY = item.y;
 
         const previousBottom =
             previousY +
             item.height;
 
-
-        item.y +=
-            item.velocityY;
-
+        item.y += item.velocityY;
 
         item.grounded = false;
-
-
-        /*
-            LAND ON PLATFORMS
-        */
 
         for (
             const platform
             of platforms
         ) {
-
-            const horizontalCollision =
-
+            const horizontal =
                 item.x <
                     platform.x +
                     platform.width &&
-
                 item.x +
                     item.width >
                     platform.x;
 
-
-            const verticalCollision =
-
+            const vertical =
                 previousBottom <=
                     platform.y &&
-
                 item.y +
                     item.height >=
                     platform.y;
 
-
             if (
-                horizontalCollision &&
-                verticalCollision &&
+                horizontal &&
+                vertical &&
                 item.velocityY >= 0
             ) {
-
                 item.y =
                     platform.y -
                     item.height;
 
                 item.velocityY = 0;
-
                 item.grounded = true;
 
                 break;
             }
         }
 
-
-        /*
-            LAND ON BLOCKS
-        */
-
         if (!item.grounded) {
-
             for (
                 const block
                 of blocks
             ) {
-
                 if (block.broken) {
                     continue;
                 }
 
-
-                const horizontalCollision =
-
+                const horizontal =
                     item.x <
                         block.x +
                         block.width &&
-
                     item.x +
                         item.width >
                         block.x;
 
-
-                const verticalCollision =
-
+                const vertical =
                     previousBottom <=
                         block.y &&
-
                     item.y +
                         item.height >=
                         block.y;
 
-
                 if (
-                    horizontalCollision &&
-                    verticalCollision &&
+                    horizontal &&
+                    vertical &&
                     item.velocityY >= 0
                 ) {
-
                     item.y =
                         block.y -
                         item.height;
 
                     item.velocityY = 0;
-
                     item.grounded = true;
 
                     break;
@@ -310,177 +213,132 @@ export function updatePowerUps(
             }
         }
 
-
-        /*
-            TURN AROUND AT
-            SOLID OBJECT SIDES
-        */
-
         if (item.grounded) {
-
             let blockedLeft = false;
             let blockedRight = false;
-
 
             for (
                 const platform
                 of platforms
             ) {
-
                 const verticalOverlap =
-
                     item.y <
                         platform.y +
                         platform.height &&
-
                     item.y +
                         item.height >
                         platform.y;
-
 
                 if (!verticalOverlap) {
                     continue;
                 }
 
-
                 if (
                     item.x +
-                    item.width >=
-                    platform.x &&
-
+                        item.width >=
+                        platform.x &&
                     item.x <
-                    platform.x
+                        platform.x
                 ) {
-
                     blockedRight = true;
-
                 }
-
 
                 if (
                     item.x <=
-                    platform.x +
-                    platform.width &&
-
+                        platform.x +
+                        platform.width &&
                     item.x +
-                    item.width >
-                    platform.x +
-                    platform.width
+                        item.width >
+                        platform.x +
+                        platform.width
                 ) {
-
                     blockedLeft = true;
-
                 }
             }
-
 
             for (
                 const block
                 of blocks
             ) {
-
                 if (block.broken) {
                     continue;
                 }
 
-
                 const verticalOverlap =
-
                     item.y <
                         block.y +
                         block.height &&
-
                     item.y +
                         item.height >
                         block.y;
-
 
                 if (!verticalOverlap) {
                     continue;
                 }
 
-
                 if (
                     item.x +
-                    item.width >=
-                    block.x &&
-
+                        item.width >=
+                        block.x &&
                     item.x <
-                    block.x
+                        block.x
                 ) {
-
                     blockedRight = true;
-
                 }
-
 
                 if (
                     item.x <=
-                    block.x +
-                    block.width &&
-
+                        block.x +
+                        block.width &&
                     item.x +
-                    item.width >
-                    block.x +
-                    block.width
+                        item.width >
+                        block.x +
+                        block.width
                 ) {
-
                     blockedLeft = true;
-
                 }
             }
 
-
             if (blockedLeft) {
                 item.velocityX =
-                    Math.abs(SLIDE_SPEED);
+                    Math.abs(
+                        SLIDE_SPEED
+                    );
             }
-
 
             if (blockedRight) {
                 item.velocityX =
-                    -Math.abs(SLIDE_SPEED);
+                    -Math.abs(
+                        SLIDE_SPEED
+                    );
             }
         }
     }
 }
 
-
-/* =========================
-   PLAYER COLLISION
-========================= */
-
 export function checkPowerUpCollision(
     player,
     item
 ) {
-
     if (item.collected) {
         return false;
     }
 
     return (
-
         player.x <
             item.x +
             item.width &&
-
         player.x +
             player.width >
             item.x &&
-
         player.y <
             item.y +
             item.height &&
-
         player.y +
             player.height >
             item.y
     );
-}
-
-
-/* =========================
+            }/* =========================
    COLLECT
 ========================= */
 
@@ -495,11 +353,9 @@ export function collectPowerUp(
 
     item.collected = true;
 
-
     const feet =
         player.y +
         player.height;
-
 
     if (
         item.type ===
@@ -517,7 +373,6 @@ export function collectPowerUp(
 
         return true;
     }
-
 
     if (
         item.type ===
@@ -541,7 +396,6 @@ export function collectPowerUp(
         return true;
     }
 
-
     if (
         item.type ===
         ITEM_TYPES.BUNNY
@@ -564,7 +418,6 @@ export function collectPowerUp(
         return true;
     }
 
-
     if (
         item.type ===
         ITEM_TYPES.FIRE
@@ -586,7 +439,6 @@ export function collectPowerUp(
 
         return true;
     }
-
 
     return false;
 }
@@ -619,7 +471,6 @@ export function removePower(player) {
         player.height;
 
     clearAbilities(player);
-
 
     if (player.isBig) {
 
@@ -655,7 +506,6 @@ export function damagePlayer(player) {
         return false;
     }
 
-
     if (player.isBig) {
 
         const feet =
@@ -674,7 +524,6 @@ export function damagePlayer(player) {
         return false;
     }
 
-
     return true;
 }
 
@@ -687,35 +536,29 @@ export function getPlayerPower(player) {
     return player.power;
 }
 
-
 export function hasWings(player) {
 
     return (
         player.power ===
             POWER_TYPES.WINGS &&
-
         player.hasWings === true
     );
 }
-
 
 export function canDoubleJump(player) {
 
     return (
         player.power ===
             POWER_TYPES.BUNNY &&
-
         player.hasDoubleJump === true
     );
 }
-
 
 export function canShootFire(player) {
 
     return (
         player.power ===
             POWER_TYPES.FIRE &&
-
         player.hasFirePower === true
     );
 }
@@ -730,12 +573,10 @@ export function resetPowerUps(items) {
     for (const item of items) {
 
         item.collected = false;
-
         item.velocityX = SLIDE_SPEED;
         item.velocityY = 0;
-
         item.grounded = false;
-
         item.emerging = false;
+
     }
-                    }
+}
