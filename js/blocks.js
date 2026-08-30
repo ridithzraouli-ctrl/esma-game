@@ -1,144 +1,62 @@
 const BLOCK_SIZE = 16;
 const POP_DISTANCE = 16;
 
-
-export function createBlock(
-    x,
-    y,
-    content = null
-) {
-
+export function createBlock(x, y, content = null) {
     return {
-
         x,
         y,
-
         width: BLOCK_SIZE,
         height: BLOCK_SIZE,
-
-        content,
-
+        content: content ? content.toLowerCase() : null,
         hit: false,
         released: false,
         broken: false
-
     };
-
 }
 
-
-export function createBlocks(
-    blockData
-) {
-
-    return blockData.map(
-        block =>
-            createBlock(
-                block.x,
-                block.y,
-                block.type || null
-            )
+export function createBlocks(blockData) {
+    return blockData.map(block =>
+        createBlock(
+            block.x,
+            block.y,
+            block.type || null
+        )
     );
-
 }
 
-
-export function checkBlockCollision(
-    player,
-    block
-) {
-
-    if (block.broken) {
+function wasHitFromBelow(player, block) {
+    if (player.previousY === undefined) {
         return false;
     }
 
-    return (
-
-        player.x <
-            block.x +
-            block.width &&
-
-        player.x +
-            player.width >
-            block.x &&
-
-        player.y <
-            block.y +
-            block.height &&
-
-        player.y +
-            player.height >
-            block.y
-
-    );
-
-}
-
-
-function wasHitFromBelow(
-    player,
-    block
-) {
-
-    if (
-        player.previousY === undefined
-    ) {
-
-        return false;
-
-    }
-
-
-    const previousBottom =
-        player.previousY +
-        player.height;
-
-    const currentBottom =
-        player.y +
-        player.height;
-
+    const previousTop = player.previousY;
+    const currentTop = player.y;
 
     return (
+        player.velocityY <= 0 &&
 
-        player.velocityY < 0 &&
+        previousTop >=
+            block.y + block.height &&
 
-        previousBottom >=
-            block.y +
-
-            block.height &&
-
-        currentBottom <=
-            block.y +
-
-            block.height &&
+        currentTop <=
+            block.y + block.height &&
 
         player.x <
-            block.x +
-            block.width &&
+            block.x + block.width &&
 
-        player.x +
-            player.width >
+        player.x + player.width >
             block.x
-
     );
-
 }
 
-
-export function hitBlock(
-    player,
-    block
-) {
+export function hitBlock(player, block) {
 
     if (
         block.hit ||
         block.broken
     ) {
-
         return null;
-
     }
-
 
     if (
         !wasHitFromBelow(
@@ -146,11 +64,8 @@ export function hitBlock(
             block
         )
     ) {
-
         return null;
-
     }
-
 
     player.y =
         block.y +
@@ -158,30 +73,18 @@ export function hitBlock(
 
     player.velocityY = 0;
 
-
-    const type =
-        String(
-            block.content || ""
-        ).toLowerCase();
-
-
     if (
-        type === "brick"
+        block.content === "brick"
     ) {
 
         if (player.isBig) {
-
             block.broken = true;
-
         }
 
         return null;
-
     }
 
-
     block.hit = true;
-
 
     if (
         block.content &&
@@ -191,32 +94,20 @@ export function hitBlock(
         block.released = true;
 
         return block.content;
-
     }
 
-
     return null;
-
 }
 
-
-export function updateBlocks(
-    player,
-    blocks
-) {
+export function updateBlocks(player, blocks) {
 
     const released = [];
 
-
-    for (
-        const block
-        of blocks
-    ) {
+    for (const block of blocks) {
 
         if (block.broken) {
             continue;
         }
-
 
         const item =
             hitBlock(
@@ -224,31 +115,27 @@ export function updateBlocks(
                 block
             );
 
-
         if (item) {
 
             released.push({
-
                 type: item,
 
                 x:
-                    block.x,
+                    block.x +
+                    (
+                        block.width -
+                        BLOCK_SIZE
+                    ) / 2,
 
                 y:
                     block.y -
                     POP_DISTANCE
-
             });
-
         }
-
     }
 
-
     return released;
-
 }
-
 
 export function drawBlock(
     ctx,
@@ -261,26 +148,15 @@ export function drawBlock(
         return;
     }
 
-
     const x =
-        block.x -
-        cameraX;
+        block.x - cameraX;
 
     const y =
-        block.y -
-        cameraY;
+        block.y - cameraY;
 
+    if (block.content === "brick") {
 
-    const type =
-        String(
-            block.content || ""
-        ).toLowerCase();
-
-
-    if (type === "brick") {
-
-        ctx.fillStyle =
-            "#A85D32";
+        ctx.fillStyle = "#A85D32";
 
         ctx.fillRect(
             x,
@@ -289,9 +165,7 @@ export function drawBlock(
             block.height
         );
 
-        ctx.strokeStyle =
-            "#67351F";
-
+        ctx.strokeStyle = "#67351F";
         ctx.lineWidth = 1;
 
         ctx.strokeRect(
@@ -301,57 +175,26 @@ export function drawBlock(
             block.height
         );
 
-        ctx.strokeStyle =
-            "#7D4326";
+        ctx.strokeStyle = "#7D4326";
 
         ctx.beginPath();
 
-        ctx.moveTo(
-            x,
-            y + 8
-        );
+        ctx.moveTo(x, y + 8);
+        ctx.lineTo(x + 16, y + 8);
 
-        ctx.lineTo(
-            x + 16,
-            y + 8
-        );
+        ctx.moveTo(x + 8, y);
+        ctx.lineTo(x + 8, y + 8);
 
-        ctx.moveTo(
-            x + 8,
-            y
-        );
+        ctx.moveTo(x + 4, y + 8);
+        ctx.lineTo(x + 4, y + 16);
 
-        ctx.lineTo(
-            x + 8,
-            y + 8
-        );
-
-        ctx.moveTo(
-            x + 4,
-            y + 8
-        );
-
-        ctx.lineTo(
-            x + 4,
-            y + 16
-        );
-
-        ctx.moveTo(
-            x + 12,
-            y + 8
-        );
-
-        ctx.lineTo(
-            x + 12,
-            y + 16
-        );
+        ctx.moveTo(x + 12, y + 8);
+        ctx.lineTo(x + 12, y + 16);
 
         ctx.stroke();
 
         return;
-
     }
-
 
     ctx.fillStyle =
         block.hit
@@ -365,10 +208,7 @@ export function drawBlock(
         block.height
     );
 
-
-    ctx.strokeStyle =
-        "#8A5A00";
-
+    ctx.strokeStyle = "#8A5A00";
     ctx.lineWidth = 1;
 
     ctx.strokeRect(
@@ -378,27 +218,18 @@ export function drawBlock(
         block.height
     );
 
-
     if (!block.hit) {
 
-        ctx.fillStyle =
-            "#5A3A00";
+        ctx.fillStyle = "#5A3A00";
 
-        ctx.font =
-            "bold 13px Arial";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "middle";
+        ctx.font = "bold 13px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
 
         ctx.fillText(
             "?",
             x + block.width / 2,
             y + block.height / 2
         );
-
     }
-
 }
